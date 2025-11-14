@@ -1,0 +1,33 @@
+<svg width="300" height="300" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#FFD984"/>
+      <stop offset="50%" stop-color="#DAA520"/>
+      <stop offset="100%" stop-color="#AA7A17"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Outer lotus petals -->
+  <g fill="none" stroke="url(#gold)" stroke-width="4">
+    <circle cx="150" cy="150" r="120"/>
+    <circle cx="150" cy="150" r="100"/>
+    <circle cx="150" cy="150" r="80"/>
+    
+    <!-- Petals -->
+    <path d="M150 20 C180 60 180 100 150 140 C120 100 120 60 150 20Z"/>
+    <path d="M280 150 C240 180 200 180 160 150 C200 120 240 120 280 150Z"/>
+    <path d="M150 280 C180 240 180 200 150 160 C120 200 120 240 150 280Z"/>
+    <path d="M20 150 C60 180 100 180 140 150 C100 120 60 120 20 150Z"/>
+  </g>
+
+  <!-- Sri Yantra Inner Geometry -->
+  <g fill="none" stroke="url(#gold)" stroke-width="3">
+    <!-- Main triangles -->
+    <polygon points="150,70 210,180 90,180"/>
+    <polygon points="150,230 90,120 210,120"/>
+    
+    <!-- Inner triangles -->
+    <polygon points="150,105 180,160 120,160"/>
+    <polygon points="150,195 120,140 180,140"/>
+  </g>
+</svg>

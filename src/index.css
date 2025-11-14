@@ -1,0 +1,94 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ----------------------------------------------------------
+   GLOBAL RESET + SMOOTHING
+---------------------------------------------------------- */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-beige dark:bg-dark-temple text-dark-temple dark:text-beige overflow-x-hidden;
+  font-family: 'Inter', sans-serif;
+}
+
+/* ----------------------------------------------------------
+   CUSTOM SCROLLBAR
+---------------------------------------------------------- */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+}
+::-webkit-scrollbar-thumb {
+  background: #d4a017;
+  border-radius: 8px;
+}
+
+/* ----------------------------------------------------------
+   HERO SUBTITLE GOLD SHEEN (Premium Final Polish)
+---------------------------------------------------------- */
+.hero-subtle-sheen {
+  background: linear-gradient(90deg, #d4a017 0%, #fce8b0 50%, #d4a017 100%);
+  background-size: 200%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: sheen 6s ease-in-out infinite;
+}
+
+@keyframes sheen {
+  0%, 100% { background-position: 0% }
+  50% { background-position: 200% }
+}
+
+/* ----------------------------------------------------------
+   YANTRA SPIN (Used for logo/footer watermark)
+---------------------------------------------------------- */
+@keyframes spin-slow {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 18s linear infinite;
+}
+
+/* ----------------------------------------------------------
+   FADE-IN ANIMATIONS
+---------------------------------------------------------- */
+.fade-in {
+  animation: fadeIn 1s ease forwards;
+}
+
+@keyframes fadeIn {
+  0% { opacity: 0; transform: translateY(8px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* ----------------------------------------------------------
+   CARD HOVER POLISH
+---------------------------------------------------------- */
+.card-hover {
+  @apply transition-all duration-200;
+}
+.card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+/* ----------------------------------------------------------
+   BUTTON GLOW HOVER
+---------------------------------------------------------- */
+.btn-glow:hover {
+  box-shadow: 0 0 18px rgba(212, 160, 23, 0.6);
+}
+
+/* ----------------------------------------------------------
+   DARK MODE TRANSITION SMOOTHNESS
+---------------------------------------------------------- */
+* {
+  transition: background 0.25s ease, color 0.25s ease;
+}
