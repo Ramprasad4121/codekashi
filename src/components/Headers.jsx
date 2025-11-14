@@ -1,7 +1,7 @@
 // src/components/Header.jsx
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import Logo from "./Logo";
+import Logo from "./logo.jsx";
 
 export default function Header({ isDarkMode, toggleDarkMode }) {
   const [active, setActive] = useState("home");
