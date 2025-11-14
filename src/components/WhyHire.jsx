@@ -29,7 +29,7 @@ export default function WhyHireMe() {
           transition={{ duration: 0.5 }}
         >
           <h3 className="text-xl font-heading font-semibold text-dark-temple dark:text-gold mb-2">
-            . I write contracts that survive production.
+            1. I write contracts that survive production.
           </h3>
           <p>
             I focus on readability, predictable state transitions, gas-aware design, 
