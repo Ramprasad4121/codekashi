@@ -64,7 +64,7 @@ export default function Hero() {
       <motion.div
         ref={yantraRef}
         initial={{ opacity: 0 }}
-        animate={{ opacity: 0.07 }}
+        animate={{ opacity: 0.04 }}
         transition={{ duration: 1.2 }}
         className="absolute top-1/2 left-1/2 pointer-events-none"
         style={{
