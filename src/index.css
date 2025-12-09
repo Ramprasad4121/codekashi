@@ -20,9 +20,11 @@ body {
 ::-webkit-scrollbar {
   width: 8px;
 }
+
 ::-webkit-scrollbar-track {
   background: rgba(0, 0, 0, 0.05);
 }
+
 ::-webkit-scrollbar-thumb {
   background: #d4a017;
   border-radius: 8px;
@@ -35,21 +37,86 @@ body {
   background: linear-gradient(90deg, #d4a017 0%, #fce8b0 50%, #d4a017 100%);
   background-size: 200%;
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   animation: sheen 6s ease-in-out infinite;
 }
 
 @keyframes sheen {
-  0%, 100% { background-position: 0% }
-  50% { background-position: 200% }
+
+  0%,
+  100% {
+    background-position: 0%
+  }
+
+  50% {
+    background-position: 200%
+  }
+}
+
+/* ----------------------------------------------------------
+   LIQUID GOLD TEXT SHIMMER (V2.0 Premium Effect)
+   Molten gold flowing animation for key headings
+---------------------------------------------------------- */
+.liquid-gold-shimmer {
+  background: linear-gradient(120deg,
+      #8B6914 0%,
+      #D4A017 20%,
+      #FFE5A0 35%,
+      #FFFACD 50%,
+      #FFE5A0 65%,
+      #D4A017 80%,
+      #8B6914 100%);
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: liquid-gold 4s ease-in-out infinite;
+  text-shadow: 0 0 30px rgba(212, 160, 23, 0.2);
+}
+
+@keyframes liquid-gold {
+  0% {
+    background-position: 100% 50%
+  }
+
+  50% {
+    background-position: 0% 50%
+  }
+
+  100% {
+    background-position: 100% 50%
+  }
+}
+
+/* Subtle gold glow pulse for emphasis */
+.gold-glow-pulse {
+  animation: gold-pulse 3s ease-in-out infinite;
+}
+
+@keyframes gold-pulse {
+
+  0%,
+  100% {
+    text-shadow: 0 0 10px rgba(212, 160, 23, 0.3);
+  }
+
+  50% {
+    text-shadow: 0 0 25px rgba(212, 160, 23, 0.5), 0 0 40px rgba(212, 160, 23, 0.2);
+  }
 }
 
 /* ----------------------------------------------------------
    YANTRA SPIN (Used for logo/footer watermark)
 ---------------------------------------------------------- */
 @keyframes spin-slow {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .animate-spin-slow {
@@ -64,8 +131,15 @@ body {
 }
 
 @keyframes fadeIn {
-  0% { opacity: 0; transform: translateY(8px); }
-  100% { opacity: 1; transform: translateY(0); }
+  0% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* ----------------------------------------------------------
@@ -74,6 +148,7 @@ body {
 .card-hover {
   @apply transition-all duration-200;
 }
+
 .card-hover:hover {
   transform: translateY(-4px);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
@@ -91,4 +166,70 @@ body {
 ---------------------------------------------------------- */
 * {
   transition: background 0.25s ease, color 0.25s ease;
+}
+
+/* ----------------------------------------------------------
+   DIYA/FIREFLY PARTICLE SYSTEM
+   Warm golden particles floating upward like lamp flames
+---------------------------------------------------------- */
+.diya-particle {
+  position: absolute;
+  left: var(--left);
+  bottom: calc(0% - var(--start-y));
+  width: var(--size);
+  height: var(--size);
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%,
+      rgba(255, 220, 120, 0.95) 0%,
+      rgba(212, 160, 23, 0.8) 40%,
+      rgba(180, 120, 10, 0.4) 70%,
+      transparent 100%);
+  filter: blur(0.5px);
+  box-shadow:
+    0 0 calc(var(--size) * 0.5) rgba(255, 200, 80, 0.6),
+    0 0 calc(var(--size) * 1.5) rgba(212, 160, 23, 0.3);
+  animation:
+    diya-float var(--duration) ease-in-out var(--delay) infinite,
+    diya-flicker 2s ease-in-out var(--delay) infinite;
+  opacity: 0;
+}
+
+@keyframes diya-float {
+  0% {
+    transform: translateX(0) translateY(0);
+    opacity: 0;
+  }
+
+  10% {
+    opacity: var(--opacity);
+  }
+
+  85% {
+    opacity: var(--opacity);
+  }
+
+  100% {
+    transform: translateX(var(--drift)) translateY(-120vh);
+    opacity: 0;
+  }
+}
+
+@keyframes diya-flicker {
+
+  0%,
+  100% {
+    filter: blur(0.5px) brightness(1);
+  }
+
+  25% {
+    filter: blur(0.3px) brightness(1.15);
+  }
+
+  50% {
+    filter: blur(0.6px) brightness(0.9);
+  }
+
+  75% {
+    filter: blur(0.4px) brightness(1.1);
+  }
 }

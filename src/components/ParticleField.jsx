@@ -1,38 +1,57 @@
 // src/components/ParticleField.jsx
-import React from "react";
+// Diya/Firefly Particle System - warm golden particles floating like lamp flames
+import React, { useMemo } from "react";
 
 /**
- * Lightweight decorative particle layer.
- * count: number of particles (small, low-cost)
- * The particles are purely decorative (CSS-driven).
+ * DiYa-inspired particle layer.
+ * Creates warm, golden glowing particles that drift upward like oil lamp flames.
+ * Evokes the sacred feel of Ganga Aarti at Varanasi.
  */
-export default function ParticleField({ count = 24 }) {
-  const nodes = Array.from({ length: count }).map((_, i) => {
-    // random properties for CSS variables
-    const size = Math.floor(6 + Math.random() * 10); // px
-    const left = Math.floor(Math.random() * 100); // %
-    const delay = (Math.random() * 8).toFixed(2) + "s";
-    const duration = (8 + Math.random() * 12).toFixed(2) + "s";
-    const opacity = (0.08 + Math.random() * 0.12).toFixed(2);
-    const transformX = (Math.random() * 160 - 80).toFixed(2) + "px";
-    const transformY = (Math.random() * 80 - 40).toFixed(2) + "px";
+export default function ParticleField({ count = 30 }) {
+  const particles = useMemo(() => {
+    return Array.from({ length: count }).map((_, i) => {
+      // Randomized properties for each particle
+      const size = 4 + Math.random() * 8; // 4-12px
+      const left = Math.random() * 100; // Horizontal position %
+      const delay = Math.random() * 8; // Animation delay
+      const duration = 10 + Math.random() * 15; // 10-25s rise time
+      const horizontalDrift = (Math.random() - 0.5) * 60; // Subtle sway
+      const startY = 80 + Math.random() * 40; // Start below viewport
+      const opacity = 0.3 + Math.random() * 0.5; // 0.3-0.8
 
-    return (
-      <span
-        key={i}
-        className="particle"
-        style={{
-          left: `${left}%`,
-          width: `${size}px`,
-          height: `${size}px`,
-          animationDelay: delay,
-          animationDuration: duration,
-          opacity,
-          transform: `translate(${transformX}, ${transformY})`,
-        }}
-      />
-    );
-  });
+      return {
+        id: i,
+        size,
+        left,
+        delay,
+        duration,
+        horizontalDrift,
+        startY,
+        opacity,
+      };
+    });
+  }, [count]);
 
-  return <div className="pointer-events-none relative z-0 w-full h-full">{nodes}</div>;
+  return (
+    <div
+      className="absolute inset-0 overflow-hidden pointer-events-none z-0"
+      aria-hidden="true"
+    >
+      {particles.map((p) => (
+        <span
+          key={p.id}
+          className="diya-particle"
+          style={{
+            "--size": `${p.size}px`,
+            "--left": `${p.left}%`,
+            "--delay": `${p.delay}s`,
+            "--duration": `${p.duration}s`,
+            "--drift": `${p.horizontalDrift}px`,
+            "--start-y": `${p.startY}%`,
+            "--opacity": p.opacity,
+          }}
+        />
+      ))}
+    </div>
+  );
 }

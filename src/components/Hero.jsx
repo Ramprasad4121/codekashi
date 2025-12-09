@@ -1,55 +1,10 @@
 // src/components/Hero.jsx
-import React, { useRef, useEffect } from "react";
+import React, { useRef } from "react";
 import { motion } from "framer-motion";
-import yantra from "../assets/gayatri-yantra.svg";
 import ParticleField from "./ParticleField";
 
 export default function Hero() {
   const heroRef = useRef(null);
-  const yantraRef = useRef(null);
-  const auraRef = useRef(null);
-
-  // Very subtle parallax
-  useEffect(() => {
-    const el = heroRef.current;
-    if (!el) return;
-
-    function onMove(e) {
-      const rect = el.getBoundingClientRect();
-      const x = (e.clientX - rect.left) / rect.width - 0.5;
-      const y = (e.clientY - rect.top) / rect.height - 0.5;
-
-      const tx = x * 4; // subtle movement
-      const ty = y * 3;
-
-      if (yantraRef.current) {
-        yantraRef.current.style.transform = 
-          `translate(calc(-50% + ${tx}px), calc(-50% + ${ty}px))`;
-      }
-
-      if (auraRef.current) {
-        auraRef.current.style.transform = 
-          `translate(calc(-50% + ${tx/2}px), calc(-50% + ${ty/2}px))`;
-      }
-    }
-
-    function onLeave() {
-      if (yantraRef.current) {
-        yantraRef.current.style.transform = "translate(-50%, -50%)";
-      }
-      if (auraRef.current) {
-        auraRef.current.style.transform = "translate(-50%, -50%)";
-      }
-    }
-
-    el.addEventListener("mousemove", onMove);
-    el.addEventListener("mouseleave", onLeave);
-
-    return () => {
-      el.removeEventListener("mousemove", onMove);
-      el.removeEventListener("mouseleave", onLeave);
-    };
-  }, []);
 
   return (
     <section
@@ -57,39 +12,18 @@ export default function Hero() {
       ref={heroRef}
       className="relative max-w-6xl mx-auto px-6 pt-32 pb-24 text-center overflow-hidden"
     >
-      {/* Particle Layer (very subtle) */}
-      <ParticleField count={22} />
-
-      {/* SUBTLE YANTRA BACKGROUND */}
-      <motion.div
-        ref={yantraRef}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 0.04 }}
-        transition={{ duration: 1.2 }}
-        className="absolute top-1/2 left-1/2 pointer-events-none"
-        style={{
-          width: "520px",
-          height: "520px",
-          transform: "translate(-50%, -50%)",
-        }}
-      >
-        <img
-          src={yantra}
-          alt="yantra"
-          className="w-full h-full object-contain blur-[1px]"
-        />
-      </motion.div>
+      {/* Particle Layer - Diya/Firefly Effect */}
+      <ParticleField count={35} />
 
       {/* SOFT GOLD AURA */}
       <div
-        ref={auraRef}
         className="absolute top-1/2 left-1/2 pointer-events-none rounded-full"
         style={{
-          width: "540px",
-          height: "540px",
+          width: "580px",
+          height: "580px",
           transform: "translate(-50%, -50%)",
           background:
-            "radial-gradient(circle, rgba(212,160,23,0.06) 0%, rgba(212,160,23,0.02) 40%, transparent 70%)",
+            "radial-gradient(circle, rgba(212,160,23,0.08) 0%, rgba(212,160,23,0.03) 40%, transparent 70%)",
         }}
       />
 
@@ -104,23 +38,23 @@ export default function Hero() {
       </motion.p>
 
       {/* MAIN HEADING */}
-     <motion.h1
-  initial={{ opacity: 0, y: 12 }}
-  whileInView={{ opacity: 1, y: 0 }}
-  transition={{ duration: 0.75, delay: 0.12 }}
-  className="text-5xl md:text-6xl font-heading font-extrabold text-dark-temple dark:text-gold leading-tight relative z-10"
->
-  Ramprasad
-</motion.h1>
+      <motion.h1
+        initial={{ opacity: 0, y: 12 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.75, delay: 0.12 }}
+        className="text-5xl md:text-6xl font-heading font-extrabold text-dark-temple dark:text-gold leading-tight relative z-10"
+      >
+        Ramprasad
+      </motion.h1>
 
-<motion.h2
-  initial={{ opacity: 0, y: 8 }}
-  whileInView={{ opacity: 1, y: 0 }}
-  transition={{ duration: 0.75, delay: 0.2 }}
-  className="mt-3 text-xl md:text-2xl font-heading text-dark-temple dark:text-gold/90 tracking-wide relative z-10"
->
-  Smart Contract Engineer · Solidity Developer · Security Researcher
-</motion.h2>
+      <motion.h2
+        initial={{ opacity: 0, y: 8 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.75, delay: 0.2 }}
+        className="mt-3 text-xl md:text-2xl font-heading text-dark-temple dark:text-gold/90 tracking-wide relative z-10"
+      >
+        Smart Contract Engineer · Solidity Developer · Security Researcher
+      </motion.h2>
 
       {/* DIVIDER */}
       <motion.div

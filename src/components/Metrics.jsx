@@ -1,6 +1,30 @@
 // src/components/Metrics.jsx
-import React from "react";
-import { motion } from "framer-motion";
+import React, { useRef } from "react";
+import { motion, useInView } from "framer-motion";
+import useCountUp from "../hooks/useCountUp";
+
+// Helper component for animated metric values
+function AnimatedMetricValue({ value, inView }) {
+  // Parse the numeric part and suffix (e.g., "300+" -> 300 and "+")
+  const match = value.match(/^(\d+)(.*)$/);
+
+  if (!match) {
+    // Non-numeric value (like "Critical"), just show as-is
+    return <span>{value}</span>;
+  }
+
+  const numericValue = parseInt(match[1], 10);
+  const suffix = match[2] || "";
+
+  const animatedCount = useCountUp(numericValue, 2000, inView);
+
+  return (
+    <span>
+      {animatedCount}
+      {suffix}
+    </span>
+  );
+}
 
 const metrics = [
   {
@@ -36,8 +60,11 @@ const metrics = [
 ];
 
 export default function Metrics() {
+  const sectionRef = useRef(null);
+  const isInView = useInView(sectionRef, { once: true, margin: "-100px" });
+
   return (
-    <section id="metrics" className="max-w-6xl mx-auto px-6 py-20 relative">
+    <section id="metrics" className="max-w-6xl mx-auto px-6 py-20 relative" ref={sectionRef}>
       {/* Soft background glow */}
       <div className="absolute -top-16 right-0 w-40 h-40 bg-gold/10 blur-xl rounded-full pointer-events-none"></div>
 
@@ -62,10 +89,10 @@ export default function Metrics() {
             initial={{ opacity: 0, y: 12 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: i * 0.1 }}
-            className="p-6 rounded-xl bg-white/85 dark:bg-dark-temple/70 border border-gold/20 shadow-md"
+            className="p-6 rounded-xl bg-white/85 dark:bg-dark-temple/70 border border-gold/20 shadow-md hover:shadow-lg hover:border-gold/40 transition-all duration-300"
           >
             <h3 className="text-3xl font-heading font-bold text-gold mb-2">
-              {m.value}
+              <AnimatedMetricValue value={m.value} inView={isInView} />
             </h3>
             <h4 className="text-lg font-heading font-semibold text-dark-temple dark:text-gold mb-1">
               {m.label}

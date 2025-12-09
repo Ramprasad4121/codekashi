@@ -15,11 +15,17 @@ import Contact from "../components/Contacts.jsx";
 import SectionDivider from "../components/SectionDivider.jsx";
 import FadeInWhenVisible from "../components/FadeInWhenVisible.jsx";
 import Testimonials from "../components/Testimonials.jsx";
+import SanskritShloka from "../components/SanskritShloka.jsx";
+import FeaturedIn from "../components/FeaturedIn.jsx";
+import ContactForm from "../components/ContactForm.jsx";
 
 export default function Home() {
   return (
     <div className="leading-relaxed" id="top">
       <Hero />
+
+      {/* Featured In - Logo Marquee */}
+      <FeaturedIn />
 
       <SectionDivider />
 
@@ -28,6 +34,9 @@ export default function Home() {
           <About />
         </section>
       </FadeInWhenVisible>
+
+      {/* Sanskrit Shloka - after About */}
+      <SanskritShloka index={0} />
 
       <SectionDivider />
 
@@ -45,6 +54,9 @@ export default function Home() {
         </section>
       </FadeInWhenVisible>
 
+      {/* Sanskrit Shloka - after Process */}
+      <SanskritShloka index={1} />
+
       <SectionDivider />
 
       <FadeInWhenVisible>
@@ -60,6 +72,9 @@ export default function Home() {
           <AuditsList />
         </section>
       </FadeInWhenVisible>
+
+      {/* Sanskrit Shloka - after Audits */}
+      <SanskritShloka index={2} />
 
       <SectionDivider />
 
@@ -85,6 +100,9 @@ export default function Home() {
         </section>
       </FadeInWhenVisible>
 
+      {/* Sanskrit Shloka - after Tools */}
+      <SanskritShloka index={3} />
+
       <SectionDivider />
 
       <FadeInWhenVisible>
@@ -93,27 +111,30 @@ export default function Home() {
         </section>
       </FadeInWhenVisible>
 
-   
+      <SectionDivider />
+
+      <FadeInWhenVisible>
+        <section id="testimonials">
+          <Testimonials />
+        </section>
+      </FadeInWhenVisible>
 
       <SectionDivider />
 
-<FadeInWhenVisible>
-  <section id="testimonials">
-    <Testimonials />
-  </section>
-</FadeInWhenVisible>
+      <FadeInWhenVisible>
+        <section id="resume">
+          <Resume />
+        </section>
+      </FadeInWhenVisible>
 
-<SectionDivider />
-
-<FadeInWhenVisible>
-  <section id="resume">
-    <Resume />
-  </section>
-</FadeInWhenVisible>
+      {/* Sanskrit Shloka - before Contact */}
+      <SanskritShloka index={4} />
 
       <FadeInWhenVisible>
         <section id="contact">
           <Contact />
+          {/* Contact Form */}
+          <ContactForm />
         </section>
       </FadeInWhenVisible>
 
