@@ -1,7 +1,7 @@
 // src/components/Contact.jsx
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { FiMail, FiTwitter, FiGithub, FiCopy, FiCheckCircle, FiArrowUpRight } from "react-icons/fi";
+import { FiMail, FiTwitter, FiGithub, FiCopy, FiCheckCircle, FiArrowUpRight, FiCalendar } from "react-icons/fi";
 
 
 export default function Contact() {
@@ -16,7 +16,7 @@ export default function Contact() {
 
   return (
     <section id="contact" className="max-w-5xl mx-auto px-6 py-20 relative">
-      
+
       {/* Soft gold glow */}
       <div className="absolute -top-28 right-0 w-64 h-64 bg-gold/10 blur-3xl rounded-full pointer-events-none"></div>
 
@@ -33,12 +33,12 @@ export default function Contact() {
       {/* Subtitle */}
       <p className="text-center text-brown/80 dark:text-beige/70 max-w-xl mx-auto mb-14">
         Whether you’re hiring for a security audit, smart contract engineering role,
-        or long-term collaboration — I’d love to connect.  
+        or long-term collaboration — I’d love to connect.
         I respond fastest through email or X.
       </p>
 
       {/* Contact Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
 
         {/* EMAIL CARD */}
         <motion.div
@@ -116,6 +116,30 @@ export default function Contact() {
             className="inline-flex items-center gap-2 px-4 py-2 text-sm border border-gold rounded-full text-gold hover:bg-gold/10 transition"
           >
             View GitHub <FiArrowUpRight />
+          </a>
+        </motion.div>
+
+        {/* CALENDLY - SCHEDULE A CALL */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, delay: 0.15 }}
+          className="p-6 rounded-xl bg-white/85 dark:bg-dark-temple/70 border border-gold/20 shadow-md text-center"
+        >
+          <FiCalendar className="text-gold text-3xl mx-auto mb-3" />
+          <h3 className="font-heading font-semibold text-dark-temple dark:text-gold mb-1">
+            Schedule a Call
+          </h3>
+          <p className="text-sm text-brown/80 dark:text-beige/80 mb-3">
+            30-min intro call
+          </p>
+
+          <a
+            href="https://calendly.com/ramprasadgoud34/30min"
+            target="_blank"
+            className="inline-flex items-center gap-2 px-4 py-2 text-sm bg-gold text-dark-temple font-semibold rounded-full hover:brightness-110 transition shadow-sm"
+          >
+            Book a Call <FiArrowUpRight />
           </a>
         </motion.div>
       </div>

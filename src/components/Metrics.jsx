@@ -1,6 +1,7 @@
 // src/components/Metrics.jsx
 import React, { useRef } from "react";
 import { motion, useInView } from "framer-motion";
+import { FiExternalLink } from "react-icons/fi";
 import useCountUp from "../hooks/useCountUp";
 
 // Helper component for animated metric values
@@ -57,6 +58,12 @@ const metrics = [
     label: "Gas Savings Achieved",
     desc: "Refactoring loops, storage ops, and execution paths.",
   },
+  {
+    value: "🥈 2nd",
+    label: "DeNova Hackathon Winner",
+    desc: "Placed 2nd in DeNova hackathon — building innovative Web3 solutions.",
+    link: "https://x.com/decentra_cloud/status/2008902413156270335",
+  },
 ];
 
 export default function Metrics() {
@@ -83,25 +90,47 @@ export default function Metrics() {
 
       {/* Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-        {metrics.map((m, i) => (
-          <motion.div
-            key={i}
-            initial={{ opacity: 0, y: 12 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: i * 0.1 }}
-            className="p-6 rounded-xl bg-white/85 dark:bg-dark-temple/70 border border-gold/20 shadow-md hover:shadow-lg hover:border-gold/40 transition-all duration-300"
-          >
-            <h3 className="text-3xl font-heading font-bold text-gold mb-2">
-              <AnimatedMetricValue value={m.value} inView={isInView} />
-            </h3>
-            <h4 className="text-lg font-heading font-semibold text-dark-temple dark:text-gold mb-1">
-              {m.label}
-            </h4>
-            <p className="text-sm text-brown/80 dark:text-beige/80 leading-relaxed">
-              {m.desc}
-            </p>
-          </motion.div>
-        ))}
+        {metrics.map((m, i) => {
+          const CardContent = (
+            <>
+              <h3 className="text-3xl font-heading font-bold text-gold mb-2">
+                <AnimatedMetricValue value={m.value} inView={isInView} />
+              </h3>
+              <h4 className="text-lg font-heading font-semibold text-dark-temple dark:text-gold mb-1">
+                {m.label}
+                {m.link && <FiExternalLink className="inline ml-2 text-base" />}
+              </h4>
+              <p className="text-sm text-brown/80 dark:text-beige/80 leading-relaxed">
+                {m.desc}
+              </p>
+            </>
+          );
+
+          return m.link ? (
+            <motion.a
+              key={i}
+              href={m.link}
+              target="_blank"
+              rel="noopener noreferrer"
+              initial={{ opacity: 0, y: 12 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: i * 0.1 }}
+              className="block p-6 rounded-xl bg-white/85 dark:bg-dark-temple/70 border border-gold/20 shadow-md hover:shadow-lg hover:border-gold/40 transition-all duration-300 cursor-pointer"
+            >
+              {CardContent}
+            </motion.a>
+          ) : (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 12 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: i * 0.1 }}
+              className="p-6 rounded-xl bg-white/85 dark:bg-dark-temple/70 border border-gold/20 shadow-md hover:shadow-lg hover:border-gold/40 transition-all duration-300"
+            >
+              {CardContent}
+            </motion.div>
+          );
+        })}
       </div>
     </section>
   );

@@ -9,6 +9,7 @@ import AuditsList from "../components/AuditList.jsx";
 import Projects from "../components/Projects.jsx";
 import Skills from "../components/Skills.jsx";
 import Tools from "../components/Tools.jsx";
+import Certifications from "../components/Certifications.jsx";
 import Blog from "../components/Blog.jsx";
 import Resume from "../components/Resume.jsx";
 import Contact from "../components/Contacts.jsx";
@@ -100,7 +101,15 @@ export default function Home() {
         </section>
       </FadeInWhenVisible>
 
-      {/* Sanskrit Shloka - after Tools */}
+      <SectionDivider />
+
+      <FadeInWhenVisible>
+        <section id="certifications">
+          <Certifications />
+        </section>
+      </FadeInWhenVisible>
+
+      {/* Sanskrit Shloka - after Certifications */}
       <SanskritShloka index={3} />
 
       <SectionDivider />
