@@ -1,0 +1,59 @@
+---
+title: "MetaLend C-02: Fake Oracle Price Manipulation"
+date: 2026-05-01
+summary: "A deep dive into how a missing access control check allowed attackers to update the oracle price in the MetaLend protocol."
+published: true
+tags: ["Smart Contracts", "DeFi", "Oracle Manipulation"]
+---
+
+## Overview
+
+During the recent audit of the MetaLend protocol, I discovered a critical vulnerability (C-02) that allowed any user to manipulate the price oracle. This manipulation could be used to falsely inflate the value of collateral, leading to undercollateralized loans and systemic protocol insolvency.
+
+The root cause was a missing `onlyOwner` or `onlyOracle` modifier on the `updatePrice()` function in the `PriceOracle.sol` contract.
+
+## Vulnerability Details
+
+The protocol uses a custom oracle contract to fetch asset prices. The contract was designed to be updated periodically by a trusted off-chain bot. However, the update function was completely public:
+
+```solidity
+function updatePrice(address asset, uint256 newPrice) public {
+    require(asset != address(0), "Invalid asset");
+    require(newPrice > 0, "Invalid price");
+    
+    // @audit-issue Missing access control! Any user can call this.
+    prices[asset] = newPrice;
+    lastUpdateTime[asset] = block.timestamp;
+    
+    emit PriceUpdated(asset, newPrice);
+}
+```
+
+### Attack Vector
+
+1. The attacker deploys a malicious contract or uses a script.
+2. The attacker calls `updatePrice(address(weth), 9999999999e18)` to artificially inflate the price of WETH.
+3. The attacker deposits a tiny amount of WETH (e.g., 0.0001 WETH) into MetaLend as collateral.
+4. Because the protocol now believes WETH is worth an astronomical amount, the attacker can borrow the entire liquidity pool of USDC, DAI, and USDT.
+5. The attacker defaults on the loan, walking away with all the stablecoins while leaving the protocol with nearly worthless WETH collateral.
+
+## Remediation
+
+The fix is straightforward: implement proper access control. The protocol developers added an `onlyOracle` modifier that restricts access to a whitelisted set of trusted oracle addresses.
+
+```diff
+- function updatePrice(address asset, uint256 newPrice) public {
++ function updatePrice(address asset, uint256 newPrice) public onlyOracle {
+      require(asset != address(0), "Invalid asset");
+      require(newPrice > 0, "Invalid price");
+      
+      prices[asset] = newPrice;
+      lastUpdateTime[asset] = block.timestamp;
+      
+      emit PriceUpdated(asset, newPrice);
+  }
+```
+
+## Conclusion
+
+This finding underscores the importance of basic access controls in DeFi protocols. Always verify who is allowed to change critical state variables, especially those that dictate the valuation of assets and the flow of funds.

@@ -1,0 +1,260 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --bg-main: #050505;
+    --bg-hero: #080808;
+    --bg-card: #0a0a0e;
+    --bg-card-hover: #12121a;
+    --border-color: #1a1a24;
+    --border-hover: #2a2a3a;
+    --text-main: #f0f0f0;
+    --text-secondary: #b0b0b8;
+    --text-muted: #5a5a6e;
+    --accent-green: #00ff88;
+    --accent-amber: #ffaa00;
+    --accent-red: #ff4444;
+    --accent-rust: #e8622c;
+    --accent-crimson: #dc143c;
+    --accent-blue: #4488ff;
+    --accent-purple: #a855f7;
+    --glow-blue: rgba(60, 100, 255, 0.12);
+    --glow-green: rgba(0, 255, 136, 0.08);
+  }
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--bg-main);
+    color: var(--text-main);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Viewport border glow */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 9999;
+    border: 1px solid rgba(80, 120, 255, 0.06);
+    box-shadow:
+      inset 0 0 120px rgba(60, 100, 255, 0.03),
+      inset 0 0 300px rgba(60, 100, 255, 0.015);
+    border-radius: 12px;
+    margin: 8px;
+  }
+
+  /* Film grain texture */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 9998;
+    opacity: 0.035;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    animation: grain 0.5s steps(1) infinite;
+  }
+
+  ::selection {
+    background-color: rgba(0, 255, 136, 0.25);
+    color: var(--text-main);
+  }
+}
+
+/* Grain animation */
+@keyframes grain {
+  0% { transform: translate(0, 0); }
+  10% { transform: translate(-1%, -1%); }
+  20% { transform: translate(1%, 0%); }
+  30% { transform: translate(-1%, 1%); }
+  40% { transform: translate(1%, -1%); }
+  50% { transform: translate(-1%, 0%); }
+  60% { transform: translate(1%, 1%); }
+  70% { transform: translate(0%, -1%); }
+  80% { transform: translate(-1%, 1%); }
+  90% { transform: translate(1%, 0%); }
+  100% { transform: translate(0, 0); }
+}
+
+
+
+@keyframes glitch-h {
+  0% { clip-path: inset(0 0 100% 0); }
+  5% { clip-path: inset(40% 0 30% 0); }
+  10% { clip-path: inset(80% 0 5% 0); }
+  15% { clip-path: inset(10% 0 60% 0); }
+  20% { clip-path: inset(0 0 100% 0); }
+  100% { clip-path: inset(0 0 100% 0); }
+}
+
+@keyframes flicker {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.97; }
+}
+
+/* Dot grid pattern */
+.dot-grid {
+  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* Halftone dot effect on hero image */
+.hero-halftone {
+  position: relative;
+  filter: contrast(1.4) grayscale(0.2);
+}
+.hero-halftone::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+  background-size: 4px 4px;
+  mix-blend-mode: overlay;
+}
+
+
+
+/* Progress pillar */
+.progress-pillar {
+  position: fixed;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 2px;
+  height: 120px;
+  background: rgba(255, 255, 255, 0.06);
+  z-index: 50;
+  border-radius: 2px;
+}
+.progress-pillar-fill {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: linear-gradient(to top, var(--accent-rust), var(--accent-crimson));
+  border-radius: 2px;
+  transition: height 0.1s linear;
+  box-shadow: 0 0 8px rgba(232, 98, 44, 0.3);
+}
+
+/* Hidden terminal */
+.hero-terminal {
+  position: absolute;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 30;
+}
+.hero-terminal input {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text-muted);
+  font-family: var(--font-jetbrains-mono), monospace;
+  font-size: 11px;
+  width: 300px;
+  text-align: center;
+  caret-color: var(--accent-rust);
+}
+.hero-terminal input::placeholder {
+  color: rgba(90, 90, 110, 0.4);
+}
+
+@layer components {
+  .section-label {
+    @apply font-mono text-xs uppercase tracking-[0.2em] text-[var(--text-muted)] mb-12;
+    letter-spacing: 0.2em;
+  }
+}
+
+@layer utilities {
+  .prose-ramprasad {
+    max-width: 42rem;
+    color: var(--text-secondary);
+  }
+  .prose-ramprasad h1,
+  .prose-ramprasad h2,
+  .prose-ramprasad h3,
+  .prose-ramprasad h4 {
+    font-family: var(--font-jetbrains-mono), monospace;
+    font-weight: 700;
+    color: var(--text-main);
+    margin-top: 2.5rem;
+    margin-bottom: 1rem;
+    letter-spacing: -0.02em;
+  }
+  .prose-ramprasad h1 { font-size: 1.875rem; }
+  .prose-ramprasad h2 { font-size: 1.5rem; }
+  .prose-ramprasad h3 { font-size: 1.25rem; }
+  .prose-ramprasad p {
+    font-family: var(--font-dm-serif), serif;
+    color: var(--text-secondary);
+    line-height: 1.8;
+    margin-bottom: 1.25rem;
+  }
+  .prose-ramprasad a {
+    color: var(--accent-green);
+    text-decoration: none;
+    transition: opacity 0.2s;
+  }
+  .prose-ramprasad a:hover {
+    text-decoration: underline;
+    opacity: 0.8;
+  }
+  .prose-ramprasad blockquote {
+    border-left: 2px solid var(--accent-green);
+    padding-left: 1.25rem;
+    font-style: italic;
+    color: var(--text-muted);
+    margin: 1.5rem 0;
+  }
+  .prose-ramprasad code {
+    font-family: var(--font-jetbrains-mono), monospace;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    padding: 0.15rem 0.4rem;
+    border-radius: 4px;
+    color: var(--accent-amber);
+    font-size: 0.875rem;
+  }
+  .prose-ramprasad pre {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    padding: 1.5rem;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin: 2rem 0;
+  }
+  .prose-ramprasad pre code {
+    background: transparent;
+    border: none;
+    padding: 0;
+    color: var(--text-secondary);
+  }
+  .prose-ramprasad ul,
+  .prose-ramprasad ol {
+    font-family: var(--font-dm-serif), serif;
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+    padding-left: 1.5rem;
+  }
+  .prose-ramprasad li {
+    margin-bottom: 0.5rem;
+    line-height: 1.7;
+  }
+}
