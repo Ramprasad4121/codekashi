@@ -1,6 +1,5 @@
 import Nav from '@/components/nav'
 import Footer from '@/components/footer'
-import { format, parseISO } from 'date-fns'
 
 export const metadata = {
   title: 'Writing | Ramprasad',
@@ -85,7 +84,7 @@ export default function BlogPage() {
         </p>
 
         <div className="flex flex-col space-y-2">
-          {posts.map((post, i) => (
+          {posts.map((post) => (
             <a
               key={post.title}
               href={post.url}

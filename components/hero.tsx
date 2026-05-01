@@ -7,6 +7,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 export default function Hero() {
   const [mousePos, setMousePos] = useState({ x: 50, y: 50 })
   const [showGlitch, setShowGlitch] = useState(false)
+  const [glitchLines, setGlitchLines] = useState({ top1: 50, top2: 50 })
   const [scrollProgress, setScrollProgress] = useState(0)
   const heroRef = useRef<HTMLElement>(null)
 
@@ -31,6 +32,7 @@ export default function Hero() {
   // Periodic glitch effect
   useEffect(() => {
     const glitchInterval = setInterval(() => {
+      setGlitchLines({ top1: Math.random() * 100, top2: Math.random() * 100 })
       setShowGlitch(true)
       setTimeout(() => setShowGlitch(false), 200)
     }, 5000)
@@ -103,15 +105,14 @@ export default function Hero() {
         {/* Glitch effect layer */}
         {showGlitch && (
           <div className="absolute inset-0 z-[6] pointer-events-none overflow-hidden">
-            <div
-              className="absolute inset-0 opacity-60"
+            <div className="absolute inset-0 opacity-60"
               style={{
                 animation: 'glitch-h 0.3s steps(2) forwards',
                 background: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(232, 98, 44, 0.03) 2px, rgba(232, 98, 44, 0.03) 4px)',
               }}
             />
-            <div className="absolute w-full h-[2px] bg-[rgba(232,98,44,0.4)]" style={{ top: `${Math.random() * 100}%` }} />
-            <div className="absolute w-full h-[1px] bg-[rgba(220,20,60,0.3)]" style={{ top: `${Math.random() * 100}%` }} />
+            <div className="absolute w-full h-[2px] bg-[rgba(232,98,44,0.4)]" style={{ top: `${glitchLines.top1}%` }} />
+            <div className="absolute w-full h-[1px] bg-[rgba(220,20,60,0.3)]" style={{ top: `${glitchLines.top2}%` }} />
           </div>
         )}
 

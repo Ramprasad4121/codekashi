@@ -70,13 +70,13 @@ export default function About() {
                   I work on <span className="text-zinc-200">smart contract security</span> and <span className="text-zinc-200">Rust systems engineering</span>.
                   Before that, I built my foundation through seven independent protocol audits, 
                   the RektOff × Solana Foundation security bootcamp, and a $25K BNB Chain grant 
-                  for tooling that didn't exist yet.
+                  for tooling that didn&apos;t exist yet.
                 </p>
                 <p>
                   I got into this through low-level systems programming and a stubborn interest 
                   in how things break. I still care most about building tools that make 
-                  complex protocols harder to exploit. When I'm not auditing contracts, 
-                  I'm writing about what I found.
+                  complex protocols harder to exploit. When I&apos;m not auditing contracts, 
+                  I&apos;m writing about what I found.
                 </p>
               </div>
             </motion.div>
