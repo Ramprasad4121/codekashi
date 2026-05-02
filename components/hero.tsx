@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { useState, useEffect, useRef, useCallback } from 'react'
+import Image from 'next/image'
 
 
 export default function Hero() {
@@ -61,24 +62,23 @@ export default function Hero() {
       <section
         ref={heroRef}
         id="hero"
-        className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden"
+        className="relative min-h-[100svh] flex flex-col items-center justify-center overflow-hidden"
         style={{ background: '#050505' }}
       >
         {/* Dot grid background */}
         <div className="absolute inset-0 dot-grid opacity-40" />
 
-        {/* Hero image — using CSS background-image for full coverage */}
-        <div
-          className="absolute inset-0"
-          style={{
-            backgroundImage: 'url(/hero-1.png)',
-            backgroundSize: 'cover',
-            backgroundPosition: 'center center',
-            backgroundRepeat: 'no-repeat',
-            opacity: 0.6,
-            filter: 'contrast(1.3) grayscale(0.15)',
-          }}
-        />
+        {/* Hero image — using Next.js Image for optimal mobile rendering */}
+        <div className="absolute inset-0 z-0 opacity-60">
+          <Image
+            src="/hero-1.png"
+            alt="Hero Background"
+            fill
+            priority
+            className="object-cover object-[center_30%] sm:object-center"
+            style={{ filter: 'contrast(1.3) grayscale(0.15)' }}
+          />
+        </div>
 
         {/* Halftone dot overlay on the image */}
         <div
