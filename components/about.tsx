@@ -6,14 +6,9 @@ import Image from 'next/image'
 export default function About() {
   const employers = [
     {
-      company: 'Independent Protocol Audits',
+      company: 'Protocol Audits',
       url: '#',
       role: '7 Smart Contracts Audited'
-    },
-    {
-      company: 'BNB Chain',
-      url: 'https://bnbchain.org',
-      role: '$25K Tooling Grant Winner'
     },
     {
       company: 'RektOff × Solana Foundation',
@@ -69,8 +64,7 @@ export default function About() {
                 <p>
                   I work on <span className="text-zinc-200">smart contract security</span> and <span className="text-zinc-200">Rust systems engineering</span>.
                   Before that, I built my foundation through seven independent protocol audits, 
-                  the RektOff × Solana Foundation security bootcamp, and a $25K BNB Chain grant 
-                  for tooling that didn&apos;t exist yet.
+                  the RektOff × Solana Foundation security bootcamp.
                 </p>
                 <p>
                   I got into this through low-level systems programming and a stubborn interest 
@@ -88,9 +82,7 @@ export default function About() {
               viewport={{ once: true, margin: "-100px" }}
               transition={{ duration: 0.6, delay: 0.4 }}
             >
-              <h3 className="font-mono text-[10px] sm:text-xs uppercase tracking-[0.2em] text-zinc-600 mb-6">
-                Experience & Grants
-              </h3>
+              
               
               <div className="flex flex-col space-y-4">
                 {employers.map((emp, i) => (
