@@ -5,24 +5,25 @@ import { motion } from 'framer-motion'
 const projects = [
   {
     name: 'SRP',
-    description: 'Security Reasoning Protocol — an agentic audit workbench for smart contract vulnerability discovery with automated analysis pipelines and PoC generation.',
+    description: 'Security Reasoning Protocol (SRP) is an AI-native Web3 security operating system for EVM and Solana protocols. It is designed around evidence-first security workflows: intent extraction, vulnerability discovery, adversarial debate, exploit validation, runtime monitoring, and audit-grade reporting.',
     tags: ['TypeScript', 'AI', 'security', 'smart-contracts'],
     link: 'https://github.com/Ramprasad4121/srp',
-    stars: 12, // Dummy star count to mimic vitto.cc style
+    
   },
-  {
-    name: 'BAL Daemon',
-    description: 'Daemon process for monitoring Balancer protocol health metrics, detecting anomalies in pool compositions and triggering alerts for potential security incidents.',
-    tags: ['Rust', 'DeFi', 'monitoring', 'balancer'],
-    link: 'https://github.com/Ramprasad4121/bal-daemon',
-    stars: 8,
-  },
+  
   {
     name: 'Anchor Sentinel',
-    description: 'Security sentinel for the Anchor protocol ecosystem — watches for governance attacks, oracle deviations, and suspicious liquidation patterns in real-time.',
+    description: 'Anchor-Sentinel is a static analysis framework for Solana & Anchor programs written in Rust. It runs a suite of vulnerability detectors to identify critical security flaws, prints detailed audit reports, and—unlike traditional tools—automatically generates executable Proof-of-Concept (POC) exploits. Anchor-Sentinel enables developers to find vulnerabilities, understand attack vectors through generated code, and verify fixes instantly',
     tags: ['Solidity', 'security', 'sentinel', 'DeFi'],
     link: 'https://github.com/Ramprasad4121/anchor-sentinel',
-    stars: 24,
+    
+  },
+
+  {
+    name: 'BAL Daemon',
+    description: 'A Rust daemon that generates BEP-592 Block-Level Access List payloads for BSC block builders..',
+    tags: ['Rust', 'DeFi', 'monitoring', 'balancer'],
+    link: 'https://github.com/Ramprasad4121/bal-daemon',
   },
 ]
 
@@ -72,7 +73,7 @@ export default function Projects() {
              <div className="h-[1px] flex-1 bg-zinc-900/50" />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="flex flex-col space-y-12 md:space-y-16">
             {projects.map((project, i) => (
               <motion.a
                 key={project.name}
@@ -83,40 +84,33 @@ export default function Projects() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-50px" }}
                 transition={{ duration: 0.5, delay: i * 0.1 }}
-                className="group relative flex flex-col justify-between p-6 rounded-2xl border border-zinc-800/60 bg-[#0a0a0a] hover:bg-[#111111] hover:border-zinc-700/80 transition-all duration-300 overflow-hidden"
+                className="group block"
               >
-                <div className="absolute inset-0 bg-gradient-to-br from-[var(--accent-rust)]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                
-                <div className="relative z-10 flex flex-col h-full">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="w-10 h-10 rounded-full bg-zinc-900 flex items-center justify-center border border-zinc-800 group-hover:border-zinc-600 transition-colors">
-                      <GithubIcon className="w-5 h-5 text-zinc-400 group-hover:text-white transition-colors" />
-                    </div>
-                    {project.stars !== null && (
-                      <span className="font-mono text-xs text-zinc-500 flex items-center gap-1 group-hover:text-zinc-300 transition-colors bg-zinc-900/50 px-2.5 py-1 rounded-full border border-zinc-800/50">
-                        ★ {project.stars}
-                      </span>
-                    )}
-                  </div>
-
-                  <h3 className="text-xl font-medium text-zinc-200 group-hover:text-white transition-colors duration-200 mb-3">
-                    {project.name}
+                <div className="flex flex-col sm:flex-row sm:items-baseline justify-between mb-3">
+                  <h3 className="text-lg sm:text-xl font-semibold text-zinc-200 group-hover:text-white transition-colors duration-200 flex items-center">
+                    <GithubIcon />
+                    <span className="underline decoration-zinc-700 underline-offset-4 group-hover:decoration-zinc-400 transition-colors">
+                      {project.name}
+                    </span>
+                    <span className="ml-1 text-zinc-600 group-hover:text-white transition-colors">→</span>
                   </h3>
                   
-                  <p className="text-sm leading-relaxed text-zinc-400 mb-8 flex-grow">
-                    {project.description}
-                  </p>
-                  
-                  <div className="flex flex-wrap gap-2 mt-auto">
-                    {project.tags.map((tag) => (
-                      <span
-                        key={tag}
-                        className="text-[10px] font-mono uppercase tracking-wider text-[var(--accent-rust)] bg-[var(--accent-rust)]/10 px-2.5 py-1 rounded-full border border-[var(--accent-rust)]/20 group-hover:border-[var(--accent-rust)]/40 transition-colors"
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
+                
+                </div>
+                
+                <p className="text-base sm:text-lg leading-[1.8] text-zinc-400 mb-4">
+                  {project.description}
+                </p>
+                
+                <div className="flex flex-wrap gap-x-3 gap-y-2">
+                  {project.tags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="text-xs font-mono text-zinc-500 group-hover:text-zinc-300 transition-colors"
+                    >
+                      {tag}
+                    </span>
+                  ))}
                 </div>
               </motion.a>
             ))}
