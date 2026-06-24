@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Understanding EVM Opcodes: A Simple Guide</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      line-height: 1.8;
+      color: #e4e4e7;
+      background-color: #09090b;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+      font-size: 1.1rem;
+    }
+    h1, h2, h3, h4 { color: #ffffff; margin-top: 2rem; margin-bottom: 1rem; }
+    h1 { font-size: 2.25rem; font-weight: 700; line-height: 1.2; }
+    h2 { font-size: 1.8rem; }
+    h3 { font-size: 1.5rem; }
+    a { color: #60a5fa; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    p { margin-bottom: 1.5rem; }
+    img { max-width: 100%; height: auto; border-radius: 0.5rem; margin: 2rem 0; }
+    pre { background: #18181b; padding: 1.5rem; border-radius: 0.5rem; overflow-x: auto; font-family: monospace; }
+    code { background: #18181b; padding: 0.2rem 0.4rem; border-radius: 0.25rem; font-family: monospace; font-size: 0.9em; }
+    blockquote { border-left: 4px solid #3f3f46; margin: 0; padding-left: 1rem; color: #a1a1aa; font-style: italic; }
+    figure { margin: 2rem 0; }
+    figcaption { text-align: center; color: #a1a1aa; font-size: 0.9rem; margin-top: 0.5rem; }
+  </style>
+</head>
+<body>
+  <h1>Understanding EVM Opcodes: A Simple Guide</h1>
+  <p>Understanding EVM Opcodes: A Simple Guide</p><p>In the Ethereum Virtual Machine (EVM), opcodes are fundamental instructions that the virtual machine uses to execute smart contracts and manage transactions. Each opcode performs a specific operation, such as arithmetic, data manipulation, or control flow. Here’s a simplified guide to some common EVM opcodes:</p><p>1. PUSH1-PUSH32<br> - Pushes a constant value (1 to 32 bytes) onto the stack.</p><p>2. POP<br> - Removes the top item from the stack.</p><p>3. ADD<br> - Adds the top two numbers on the stack and pushes the result.</p><p>4. MUL<br> - Multiplies the top two numbers on the stack and pushes the result.</p><p>5. SUB<br> - Subtracts the second number from the top number and pushes the result.</p><p>6. DIV<br> - Divides the second number from the top number and pushes the result.</p><p>7. SDIV<br> - Performs signed division of the top two numbers and pushes the result.</p><p>8. MOD<br> - Calculates the remainder of the division of the top two numbers and pushes the result.</p><p>9. SMOD <br> - Computes the signed remainder of the division of the top two numbers and pushes the result.</p><p>10. ADDMOD<br> - Adds the top two numbers, then takes the modulo of the result by a third number.</p><p>11. MULMOD <br> - Multiplies the top two numbers, then takes the modulo of the result by a third number.</p><p>12. EXP <br> - Raises the top number to the power of the second number and pushes the result.</p><p>13. SIGNEXTEND<br> - Extends the sign of a number.</p><p>14. LT <br> - Compares the top two numbers; pushes 1 if the second is less than the top, otherwise 0.</p><p>15. GT <br> - Compares the top two numbers; pushes 1 if the second is greater than the top, otherwise 0.</p><p>16. EQ <br> - Compares the top two numbers; pushes 1 if they are equal, otherwise 0.</p><p>17. ISZERO<br> - Checks if the top number is zero; pushes 1 if true, otherwise 0.</p><p>18. AND<br> - Performs a bitwise AND operation on the top two numbers and pushes the result.</p><p>19. OR<br> - Performs a bitwise OR operation on the top two numbers and pushes the result.</p><p>20. XOR <br> - Performs a bitwise XOR operation on the top two numbers and pushes the result.</p><p>21. NOT <br> - Performs a bitwise NOT operation on the top number and pushes the result.</p><p>22. BYTE <br> - Extracts a byte from the top number based on the index provided by the second number.</p><p>23. SHA3 <br> - Computes the Keccak-256 hash of the data at the top of the stack.</p><p>24. ADDRESS<br> - Pushes the address of the current contract onto the stack.</p><p>25. BALANCE<br> - Pushes the balance of the given address onto the stack.</p><p>26. ORIGIN<br> - Pushes the address of the transaction origin (external account) onto the stack.</p><p>27. CALLER<br> - Pushes the address of the caller (who initiated the call) onto the stack.</p><p>28. CALLVALUE<br> - Pushes the value (in wei) sent with the call onto the stack.</p><p>29. CALLDATALOAD<br> - Loads a specific 32-byte word from the call data.</p><p>30. CALLDATASIZE <br> - Pushes the size of the call data onto the stack.</p><p>31. CALLDATACOPY<br> - Copies call data to memory.</p><p>32. CODESIZE<br> - Pushes the size of the contract code onto the stack.</p><p>33. CODECOPY<br> - Copies contract code to memory.</p><p>34. GASPRICE <br> - Pushes the current gas price onto the stack.</p><p>35. EXTCODESIZE<br> - Pushes the size of the code at a given address.</p><p>36. EXTCODECOPY<br> - Copies code from a given address to memory.</p><p>37. RETURNDATASIZE <br> - Pushes the size of the return data from the last call onto the stack.</p><p>38. RETURNDATACOPY <br> - Copies return data from the last call to memory.</p><p>39. EXTCODEHASH <br> - Computes the Keccak-256 hash of the code at a given address.</p><p>40. BLOCKHASH<br> - Pushes the hash of a block at a given index.</p><p>41. COINBASE<br> - Pushes the coinbase (miner’s address) of the current block.</p><p>42. TIMESTAMP<br> - Pushes the timestamp of the current block.</p><p>43. NUMBER <br> - Pushes the number of the current block.</p><p>44. DIFFICULTY<br> - Pushes the difficulty of the current block.</p><p>45. GASLIMIT <br> - Pushes the gas limit of the current block.</p><p>46. CHAINID <br> - Pushes the chain ID of the current network.</p><p>47. SELFBALANCE <br> - Pushes the balance of the current contract.</p><p>48. BASEFEE<br> - Pushes the base fee per gas of the current block.</p><p>49. SLOAD <br> - Loads a value from contract storage.</p><p>50. SSTORE <br> - Stores a value in contract storage.</p><p>51. LOG0-LOG4<br> - Emits log entries with up to four topics.</p><p>52. CREATE<br> - Creates a new contract with a specified amount of gas, code, and value.</p><p>53. CALL<br> - Calls another contract with specified gas, value, and inputs.</p><p>54. CALLCODE <br> - Calls another contract with specified gas and inputs, but retains the context of the current contract.</p><p>55. DELEGATECALL<br> - Calls another contract with specified gas and inputs, retaining the context of the current contract.</p><p>56. STATICCALL<br> - Calls another contract without modifying state.</p><p>57. REVERT<br> - Reverts the current transaction and optionally provides an error message.</p><p>58. INVALID<br> - An invalid opcode that causes an exception when executed.</p><p>59. SELFDESTRUCT<br> - Destroys the contract and sends its balance to a specified address.</p><img src="https://medium.com/_/stat?event=post.clientViewed&referrerSource=full_rss&postId=c7fb20454adc" width="1" height="1" alt="">
+</body>
+</html>

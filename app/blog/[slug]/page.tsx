@@ -1,0 +1,45 @@
+import Link from 'next/link';
+import { notFound } from 'next/navigation';
+
+const postsMap: Record<string, string> = {
+  "step-finance-incident": "https://docs.google.com/document/d/1RWfatb-H2O0kiwTdE5_nvcPcwhsP4LQFWLkirliiSiM/preview",
+  "proof-of-stake-vs-proof-of-work": "/writings/proof-of-stake-vs-proof-of-work.html",
+  "trail-of-bits-raising-the-standard": "/writings/trail-of-bits-raising-the-standard.html",
+  "ethereum-vs-solana": "/writings/ethereum-vs-solana.html",
+  "major-defi-security-incidents-january-2025": "/writings/major-defi-security-incidents-january-2025.html",
+  "thala-protocol-recovery": "/writings/thala-protocol-recovery.html",
+  "unchecked-external-calls-polter-finance": "/writings/unchecked-external-calls-polter-finance.html",
+  "governance-vulnerabilities-aquadao": "/writings/governance-vulnerabilities-aquadao.html",
+  "mutation-testing-penpie": "/writings/mutation-testing-penpie.html",
+  "trail-of-bits-leading-the-way": "/writings/trail-of-bits-leading-the-way.html",
+  "understanding-evm-opcodes": "/writings/understanding-evm-opcodes.html"
+};
+
+export default function BlogSlugPage({ params }: { params: { slug: string } }) {
+  const url = postsMap[params.slug];
+  if (!url) {
+    notFound();
+  }
+
+  return (
+    <div className="flex flex-col h-screen bg-[#000000] text-zinc-200 font-sans">
+      <header className="flex items-center justify-between px-6 py-4 border-b border-zinc-900/50 bg-[#000000]">
+        <div className="flex items-center gap-4">
+          <Link href="/" className="text-zinc-500 hover:text-white transition-colors flex items-center gap-2 text-sm font-mono uppercase tracking-widest">
+            <span>←</span> Back to Home
+          </Link>
+        </div>
+        <div className="font-mono text-sm tracking-wide text-zinc-400 capitalize truncate max-w-sm sm:max-w-md">
+          {params.slug.replace(/-/g, ' ')}
+        </div>
+      </header>
+      <main className="flex-1 w-full bg-zinc-950">
+        <iframe
+          src={url}
+          className="w-full h-full border-0"
+          title={`${params.slug} Article`}
+        />
+      </main>
+    </div>
+  );
+}

@@ -6,6 +6,7 @@ const socials = [
   { label: 'Twitter', handle: '@0xramprasad', href: 'https://twitter.com/0xramprasad' },
   { label: 'GitHub', handle: 'Ramprasad4121', href: 'https://github.com/Ramprasad4121' },
   { label: 'Email', handle: 'ramprasadgoud34@gmail.com', href: 'mailto:ramprasadgoud34@gmail.com' },
+  { label: 'Calendar', handle: 'Book a call', href: 'https://calendar.google.com/calendar/u/0/appointments/schedules/AcZssZ0bLjva2yB2bbE1QPkxNDDDkkQ8pywwKnjxU7ngpWfZy66Po5vsf_4EeElISlEH49Tk_pAXoske' },
 ]
 
 export default function Connect() {
@@ -28,7 +29,7 @@ export default function Connect() {
              <div className="h-[1px] flex-1 bg-zinc-900/50" />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 sm:gap-16">
+          <div className="flex flex-col sm:flex-row flex-wrap gap-8 sm:gap-12 md:gap-16">
             {socials.map((social, i) => (
               <motion.a
                 key={social.label}

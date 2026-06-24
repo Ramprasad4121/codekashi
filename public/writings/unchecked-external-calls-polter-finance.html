@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Unchecked External Calls and the Polter Finance Hack</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      line-height: 1.8;
+      color: #e4e4e7;
+      background-color: #09090b;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+      font-size: 1.1rem;
+    }
+    h1, h2, h3, h4 { color: #ffffff; margin-top: 2rem; margin-bottom: 1rem; }
+    h1 { font-size: 2.25rem; font-weight: 700; line-height: 1.2; }
+    h2 { font-size: 1.8rem; }
+    h3 { font-size: 1.5rem; }
+    a { color: #60a5fa; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    p { margin-bottom: 1.5rem; }
+    img { max-width: 100%; height: auto; border-radius: 0.5rem; margin: 2rem 0; }
+    pre { background: #18181b; padding: 1.5rem; border-radius: 0.5rem; overflow-x: auto; font-family: monospace; }
+    code { background: #18181b; padding: 0.2rem 0.4rem; border-radius: 0.25rem; font-family: monospace; font-size: 0.9em; }
+    blockquote { border-left: 4px solid #3f3f46; margin: 0; padding-left: 1rem; color: #a1a1aa; font-style: italic; }
+    figure { margin: 2rem 0; }
+    figcaption { text-align: center; color: #a1a1aa; font-size: 0.9rem; margin-top: 0.5rem; }
+  </style>
+</head>
+<body>
+  <h1>Unchecked External Calls and the Polter Finance Hack</h1>
+  <p><strong>Introduction</strong></p><p>Smart contracts are powerful, but even small oversights can lead to massive losses. Polter Finance’s <strong>$2.2M hack</strong> in November 2024 is a stark reminder of how unchecked external calls can leave protocols vulnerable to reentrancy attacks. Here’s how the hack unfolded and the lessons it offers.</p><p><strong>The Exploit: What Went Wrong?</strong></p><p>Polter Finance’s vulnerability lay in its staking contract:</p><p>1. An attacker deposited tokens into the staking contract.</p><p>2. The contract made an <strong>external call</strong> to transfer rewards, during which the attacker executed a reentrancy attack.</p><p>3. By repeatedly calling the external function before the contract updated its state, the attacker drained <strong>$2.2M</strong> worth of funds.</p><p><strong>Root Cause Analysis</strong></p><p>1. <strong>No Reentrancy Guards</strong>: The contract didn’t include mechanisms to prevent multiple calls to the same function within a single transaction.</p><p>2. <strong>Improper State Management</strong>: The contract updated its state after transferring rewards, leaving a window for exploitation.</p><p><strong>How This Could Have Been Prevented</strong></p><p>1. <strong>Checks-Effects-Interactions Pattern</strong>: Always update the contract’s state before making external calls.</p><p>2. <strong>Reentrancy Guards</strong>: Use tools like OpenZeppelin’s ReentrancyGuard to restrict reentrant calls.</p><p>3. <strong>Comprehensive Testing</strong>: Simulate reentrancy scenarios during testing to identify vulnerabilities.</p><p><strong>The Takeaway</strong></p><p>Reentrancy remains one of the most common vulnerabilities in smart contracts, but it’s also one of the easiest to prevent. By adhering to secure coding practices, projects can safeguard their ecosystems.</p><p><strong>Conclusion</strong></p><p>The Polter Finance hack highlights the dangers of unchecked external calls. For Web3 to mature, developers must prioritize security at every stage of development.</p><img src="https://medium.com/_/stat?event=post.clientViewed&referrerSource=full_rss&postId=904e3dcb6adb" width="1" height="1" alt="">
+</body>
+</html>
