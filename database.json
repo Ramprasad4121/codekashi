@@ -1,0 +1,23 @@
+{
+  "articles": {
+    "step-finance-incident": {
+      "likes": 3,
+      "feedbacks": [
+        {
+          "id": "1782395085535",
+          "feedback": "wefwef",
+          "topics": "fwefwef",
+          "createdAt": "2026-06-25T13:44:45.535Z"
+        }
+      ]
+    },
+    "soc2-type-1-and-2-guide": {
+      "likes": 2,
+      "feedbacks": []
+    },
+    "trail-of-bits-raising-the-standard": {
+      "likes": 1,
+      "feedbacks": []
+    }
+  }
+}
