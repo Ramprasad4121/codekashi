@@ -1,5 +1,6 @@
 import Nav from '@/components/nav'
 import Footer from '@/components/footer'
+import Link from 'next/link'
 
 export const metadata = {
   title: 'Writing | Ramprasad',
@@ -7,6 +8,12 @@ export const metadata = {
 }
 
 const posts = [
+  {
+    title: "SOC 2 Type I & Type II: A Complete Beginner-to-Expert Guide",
+    slug: "soc2-type-1-and-2-guide",
+    url: "/writings/soc2-guide.html",
+    date: "2026-06-25T12:00:00Z"
+  },
   {
     title: "INCIDENT REPORT: OPERATIONAL SECURITY FAILURE AND TREASURY COMPROMISE AT STEP FINANCE (JANUARY 2026)",
     slug: "step-finance-incident",
@@ -80,6 +87,13 @@ export default function BlogPage() {
     <div className="bg-[#000000] min-h-screen font-sans text-zinc-400">
       <Nav />
       <main className="max-w-3xl mx-auto px-6 pt-32 pb-24 min-h-[80vh]">
+        {/* Back to Home Button */}
+        <div className="mb-8">
+          <Link href="/#writing" className="text-zinc-500 hover:text-white transition-colors inline-flex items-center gap-2 text-sm font-mono uppercase tracking-widest">
+            <span>←</span> Back to Home
+          </Link>
+        </div>
+
         {/* Section Header */}
         <div className="flex items-center mb-12">
            <div className="flex items-center gap-4 pr-6">

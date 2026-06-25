@@ -12,7 +12,8 @@ const postsMap: Record<string, string> = {
   "governance-vulnerabilities-aquadao": "/writings/governance-vulnerabilities-aquadao.html",
   "mutation-testing-penpie": "/writings/mutation-testing-penpie.html",
   "trail-of-bits-leading-the-way": "/writings/trail-of-bits-leading-the-way.html",
-  "understanding-evm-opcodes": "/writings/understanding-evm-opcodes.html"
+  "understanding-evm-opcodes": "/writings/understanding-evm-opcodes.html",
+  "soc2-type-1-and-2-guide": "/writings/soc2-guide.html"
 };
 
 export default function BlogSlugPage({ params }: { params: { slug: string } }) {
@@ -25,7 +26,7 @@ export default function BlogSlugPage({ params }: { params: { slug: string } }) {
     <div className="flex flex-col h-screen bg-[#000000] text-zinc-200 font-sans">
       <header className="flex items-center justify-between px-6 py-4 border-b border-zinc-900/50 bg-[#000000]">
         <div className="flex items-center gap-4">
-          <Link href="/" className="text-zinc-500 hover:text-white transition-colors flex items-center gap-2 text-sm font-mono uppercase tracking-widest">
+          <Link href="/#writing" className="text-zinc-500 hover:text-white transition-colors flex items-center gap-2 text-sm font-mono uppercase tracking-widest">
             <span>←</span> Back to Home
           </Link>
         </div>

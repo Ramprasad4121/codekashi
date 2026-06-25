@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SOC 2 Type I & Type II: A Complete Beginner-to-Expert Guide</title>
+    <meta name="description" content="Learn SOC 2 from first principles, understand how auditors think, and explore what Chainlink Labs' SOC 2 attestation means for Web3 infrastructure.">
+    <meta property="og:title" content="SOC 2 Type I & Type II: A Complete Beginner-to-Expert Guide">
+    <meta property="og:description" content="Learn SOC 2 from first principles, understand how auditors think, and explore what Chainlink Labs' SOC 2 attestation means for Web3 infrastructure.">
+    
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --text-main: #1f2937;
+            --text-light: #4b5563;
+            --text-muted: #6b7280;
+            --bg-body: #f9fafb;
+            --bg-content: #ffffff;
+            --border: #e5e7eb;
+            --callout-bg: #eff6ff;
+            --callout-border: #bfdbfe;
+            --info-bg: #f0fdf4;
+            --info-border: #bbf7d0;
+            --warning-bg: #fffbeb;
+            --warning-border: #fef08a;
+            --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            --font-mono: 'Fira Code', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: var(--font-sans);
+            color: var(--text-main);
+            background-color: var(--bg-body);
+            line-height: 1.7;
+            font-size: 18px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        header {
+            background-color: var(--bg-content);
+            padding: 4rem 1.5rem;
+            text-align: center;
+            border-bottom: 1px solid var(--border);
+        }
+
+        header h1 {
+            font-size: 3rem;
+            margin: 0 0 1rem 0;
+            color: #111827;
+            line-height: 1.2;
+            letter-spacing: -0.02em;
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        header p.subtitle {
+            font-size: 1.25rem;
+            color: var(--text-light);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        header p.meta {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            margin-top: 1.5rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        nav {
+            position: sticky;
+            top: 0;
+            background-color: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(8px);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem;
+            z-index: 100;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+
+        nav ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            gap: 1.5rem;
+            max-width: 850px;
+            margin: 0 auto;
+        }
+
+        nav a {
+            text-decoration: none;
+            color: var(--text-light);
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: color 0.2s;
+        }
+
+        nav a:hover {
+            color: var(--primary);
+        }
+
+        main {
+            max-width: 850px;
+            margin: 3rem auto;
+            padding: 0 2rem;
+            background-color: var(--bg-content);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03);
+        }
+
+        .module {
+            padding: 4rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .module:last-child {
+            border-bottom: none;
+        }
+
+        h2 {
+            font-size: 2.25rem;
+            margin-top: 0;
+            margin-bottom: 1.5rem;
+            color: #111827;
+            letter-spacing: -0.01em;
+        }
+
+        h3 {
+            font-size: 1.5rem;
+            color: #111827;
+            margin-top: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        h4 {
+            font-size: 1.2rem;
+            color: #374151;
+            margin-top: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        p {
+            margin-bottom: 1.5rem;
+        }
+
+        .callout {
+            background-color: var(--callout-bg);
+            border-left: 4px solid var(--primary);
+            padding: 1.5rem 2rem;
+            margin: 2.5rem 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .info-box {
+            background-color: var(--info-bg);
+            border: 1px solid var(--info-border);
+            padding: 1.5rem 2rem;
+            margin: 2.5rem 0;
+            border-radius: 8px;
+        }
+
+        .warning-box {
+            background-color: var(--warning-bg);
+            border: 1px solid var(--warning-border);
+            padding: 1.5rem 2rem;
+            margin: 2.5rem 0;
+            border-radius: 8px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 2.5rem 0;
+            font-size: 0.95rem;
+        }
+
+        th, td {
+            padding: 1rem 1.5rem;
+            border: 1px solid var(--border);
+            text-align: left;
+        }
+
+        th {
+            background-color: #f9fafb;
+            font-weight: 600;
+            color: #111827;
+        }
+
+        code {
+            font-family: var(--font-mono);
+            background-color: #f3f4f6;
+            padding: 0.2em 0.4em;
+            border-radius: 4px;
+            font-size: 0.85em;
+            color: #ef4444;
+        }
+
+        pre {
+            background-color: #1f2937;
+            color: #f9fafb;
+            padding: 1.5rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-family: var(--font-mono);
+            font-size: 0.9em;
+            margin: 2.5rem 0;
+            line-height: 1.5;
+        }
+
+        pre code {
+            background-color: transparent;
+            color: inherit;
+            padding: 0;
+            border-radius: 0;
+        }
+
+        hr {
+            border: 0;
+            height: 1px;
+            background-color: var(--border);
+            margin: 4rem 0;
+        }
+
+        ul, ol {
+            margin-bottom: 1.5rem;
+            padding-left: 1.5rem;
+        }
+
+        li {
+            margin-bottom: 0.5rem;
+        }
+
+        .strong {
+            font-weight: 600;
+        }
+
+        .quiz-box {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 2.5rem;
+            margin: 3rem 0;
+            border-radius: 12px;
+            box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.02);
+        }
+
+        .quiz-header {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            color: var(--primary);
+            letter-spacing: 0.05em;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .quiz-question {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: #0f172a;
+        }
+
+        .quiz-options {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .quiz-option {
+            display: flex;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background-color: white;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .quiz-option:hover {
+            border-color: #cbd5e1;
+            background-color: #f1f5f9;
+        }
+
+        .quiz-option input[type="radio"] {
+            margin-right: 1rem;
+            transform: scale(1.2);
+            cursor: pointer;
+        }
+
+        .quiz-btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.2s;
+        }
+
+        .quiz-btn:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .quiz-explanation {
+            display: none;
+            margin-top: 1.5rem;
+            padding: 1.5rem;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        .quiz-explanation.correct {
+            background-color: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            color: #166534;
+        }
+
+        .quiz-explanation.incorrect {
+            background-color: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #991b1b;
+        }
+
+        .glossary-term {
+            font-weight: 700;
+            color: #111827;
+            font-size: 1.1rem;
+            margin-top: 1.5rem;
+            display: block;
+        }
+
+        .resource-list a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .resource-list a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 2.25rem;
+            }
+            main {
+                margin: 1rem;
+                padding: 1.5rem;
+            }
+            .module {
+                padding: 2.5rem 0;
+            }
+            h2 {
+                font-size: 1.75rem;
+            }
+            .quiz-box {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>SOC 2 Type I & Type II:<br>A Complete Beginner-to-Expert Guide</h1>
+    <p class="subtitle">Learn SOC 2 from first principles, understand how auditors think, and explore what Chainlink Labs' SOC 2 attestation means for Web3 infrastructure.</p>
+    <p class="meta">Estimated reading time: 45–60 minutes</p>
+</header>
+
+<nav>
+    <ul>
+        <li><a href="#module-0">0. Why It Exists</a></li>
+        <li><a href="#module-1">1. What is SOC 2</a></li>
+        <li><a href="#module-2">2. Type I vs II</a></li>
+        <li><a href="#module-3">3. Trust Services</a></li>
+        <li><a href="#module-4">4. Controls</a></li>
+        <li><a href="#module-5">5. Evidence</a></li>
+        <li><a href="#module-6">6. The Journey</a></li>
+        <li><a href="#module-7">7. Auditor Testing</a></li>
+        <li><a href="#module-8">8. The Report</a></li>
+        <li><a href="#module-9">9. Misconceptions</a></li>
+        <li><a href="#module-10">10. Chainlink Labs</a></li>
+    </ul>
+</nav>
+
+<main>
+
+    <!-- MODULE 0 -->
+    <section id="module-0" class="module">
+        <h2>Module 0: Why SOC 2 Exists</h2>
+        
+        <p>Before we dive into the acronyms, let's establish first principles.</p>
+        
+        <p>Imagine this thought experiment: You walk into a brand new, highly-rated restaurant. You sit down, and the waiter tells you, "Our kitchen is the cleanest in the city. You can trust us."</p>
+        
+        <p>Do you just take their word for it? What if the chef just dropped a steak on the floor, wiped it off, and threw it on the grill? You have no idea. You are trusting the waiter's word. That is called <strong>blind trust</strong>.</p>
+        
+        <p>But what if, before you walked in, you saw an "A" grade from the city Health Department proudly displayed in the window?</p>
+        
+        <p>Suddenly, you don't have to blindly trust the waiter. You have a <strong>third-party attestation</strong> that the restaurant follows strict cleanliness standards. An independent inspector looked at their processes and verified them.</p>
+
+        <div class="callout">
+            <strong>The Trust Problem in Tech</strong><br>
+            In the world of B2B software, cloud infrastructure, and Web3, companies handle your sensitive data, execute your critical logic, and manage infrastructure. When a startup says "We have bank-grade security," they are just playing the role of the waiter.
+        </div>
+
+        <p>As an enterprise buyer or a Web3 protocol relying on off-chain infrastructure, you cannot afford to just "trust" a vendor. You need proof. You need a health inspection.</p>
+        
+        <p>That is exactly why SOC 2 exists. It is the health inspection of the tech world.</p>
+    </section>
+
+    <!-- MODULE 1 -->
+    <section id="module-1" class="module">
+        <h2>Module 1: What is SOC 2?</h2>
+
+        <p><strong>SOC 2</strong> stands for <em>System and Organization Controls 2</em>. It is a framework created by the <strong>AICPA</strong> (American Institute of Certified Public Accountants).</p>
+
+        <p>At its core, a SOC 2 is an independent auditor's report detailing how a cloud-based service provider handles sensitive information.</p>
+
+        <div class="info-box">
+            <strong>Crucial Distinction: Attestation vs. Certification</strong><br>
+            You will constantly hear people say "We are SOC 2 Certified." This is technically incorrect. There is no SOC 2 "certificate."<br><br>
+            SOC 2 is an <strong>attestation report</strong>. An independent CPA firm reviews your systems and <em>attests</em> (swears to the fact) that your security controls are designed properly and operating effectively.
+        </div>
+
+        <h3>Why do enterprises ask for it?</h3>
+        <p>Enterprises are legally and ethically responsible for their customers' data. If a massive bank uses a small SaaS startup to process data, and the startup gets breached, the bank's customers don't care about the startup. They care that the bank failed them.</p>
+        
+        <p>Therefore, enterprise procurement teams require SOC 2 as "table stakes." If you do not have a SOC 2 report, the enterprise will simply not buy your software. It is a massive friction point in B2B sales.</p>
+    </section>
+
+    <!-- MODULE 2 -->
+    <section id="module-2" class="module">
+        <h2>Module 2: SOC 2 Type I vs. SOC 2 Type II</h2>
+
+        <p>There are two types of SOC 2 reports. The difference between them is the most fundamental concept you need to grasp.</p>
+
+        <h3>SOC 2 Type I: Point in Time</h3>
+        <p>A Type I report evaluates your organization at a <strong>single point in time</strong>. It answers the question: <em>"Are your security controls designed correctly today?"</em></p>
+        
+        <p>Going back to our restaurant analogy: The health inspector walks in on Tuesday at 2:00 PM, takes a photograph of the kitchen, checks the employee handbook, and verifies everything is clean <em>right at that second</em>.</p>
+        
+        <p><strong>Example:</strong> A startup writes a policy saying "All employees must have Two-Factor Authentication (2FA) enabled." On the day of the Type I audit, the auditor checks the system and verifies that all current employees have 2FA turned on.</p>
+
+        <h3>SOC 2 Type II: Observation Period</h3>
+        <p>A Type II report evaluates your organization over an <strong>observation period</strong> (usually 3, 6, or 12 months). It answers the question: <em>"Are your security controls operating effectively over a sustained period?"</em></p>
+        
+        <p>Restaurant analogy: The health inspector watches the kitchen via CCTV for 6 months. They verify that the kitchen was clean every single day, employees washed their hands every single time, and the fridge was never left open.</p>
+
+        <p><strong>Example:</strong> During a 6-month Type II window, the company hired 10 new people and fired 2. The auditor will check if all 10 new hires got 2FA turned on immediately, and if the 2 fired employees had their access revoked within 24 hours.</p>
+
+        <h3>Comparison Table</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Feature</th>
+                    <th>Type I</th>
+                    <th>Type II</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Timeframe</strong></td>
+                    <td>Point in time (a specific date)</td>
+                    <td>Observation period (3-12 months)</td>
+                </tr>
+                <tr>
+                    <td><strong>What it proves</strong></td>
+                    <td>Controls are <em>designed</em> correctly</td>
+                    <td>Controls are <em>operating</em> effectively</td>
+                </tr>
+                <tr>
+                    <td><strong>Effort required</strong></td>
+                    <td>Moderate</td>
+                    <td>High (requires continuous compliance)</td>
+                </tr>
+                <tr>
+                    <td><strong>Enterprise Trust</strong></td>
+                    <td>Good for early-stage B2B sales</td>
+                    <td>The gold standard for enterprise</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="quiz-box">
+            <span class="quiz-header">Module 2 Quiz</span>
+            <div class="quiz-question">Which of the following best describes a SOC 2 Type II report?</div>
+            <div class="quiz-options">
+                <label class="quiz-option">
+                    <input type="radio" name="q1" value="0">
+                    A report that proves a company has never been hacked.
+                </label>
+                <label class="quiz-option">
+                    <input type="radio" name="q1" value="1">
+                    An evaluation of security controls at a single point in time.
+                </label>
+                <label class="quiz-option">
+                    <input type="radio" name="q1" value="2">
+                    An evaluation of whether security controls are operating effectively over a period of time.
+                </label>
+                <label class="quiz-option">
+                    <input type="radio" name="q1" value="3">
+                    A certification issued by the government for cloud infrastructure.
+                </label>
+            </div>
+            <button class="quiz-btn" onclick="checkAnswer('q1', 2)">Show Answer</button>
+            <div id="q1-explanation" class="quiz-explanation" data-text="A Type II report evaluates controls over an observation period (usually 3-12 months) to ensure they are operating effectively, unlike a Type I which is a point-in-time snapshot."></div>
+        </div>
+    </section>
+
+    <!-- MODULE 3 -->
+    <section id="module-3" class="module">
+        <h2>Module 3: Trust Services Criteria (TSC)</h2>
+
+        <p>When an auditor evaluates a company, what exactly are they measuring against? They use the AICPA's <strong>Trust Services Criteria (TSC)</strong>. There are five categories. An organization can choose which criteria they want to be audited against, but <strong>Security</strong> is mandatory.</p>
+
+        <h4>1. Security (Common Criteria) - REQUIRED</h4>
+        <p>The baseline. This criterion ensures the system is protected against unauthorized access (both physical and logical). It covers firewalls, multi-factor authentication, intrusion detection, and background checks.</p>
+
+        <h4>2. Availability</h4>
+        <p>Is the system up and running as promised? This covers network performance, downtime mitigation, disaster recovery plans, and handling high load. <br><em>Example: An AWS region goes down. Does your startup have a failover to another region?</em></p>
+
+        <h4>3. Confidentiality</h4>
+        <p>Data is restricted to a specified set of persons or organizations. This applies to company secrets, IP, and business data.<br><em>Example: Ensuring internal engineers cannot read the plaintext contents of a client's proprietary database.</em></p>
+
+        <h4>4. Processing Integrity</h4>
+        <p>System processing is complete, valid, accurate, timely, and authorized.<br><em>Web3 Example: If an off-chain relayer network is taking transactions, are those transactions processed accurately without being dropped or maliciously altered?</em></p>
+
+        <h4>5. Privacy</h4>
+        <p>Personal information is collected, used, retained, disclosed, and disposed of in conformity with the organization's privacy notice.<br><em>Example: Complying with user data deletion requests (similar to GDPR requirements).</em></p>
+
+        <div class="warning-box">
+            <strong>Startups take note:</strong> Do not try to do all five TSCs on your first SOC 2. Start with Security (required) and maybe add Availability or Confidentiality based on customer demands.
+        </div>
+
+        <div class="quiz-box">
+            <span class="quiz-header">Module 3 Quiz</span>
+            <div class="quiz-question">Which Trust Services Criterion is absolutely required for every SOC 2 audit?</div>
+            <div class="quiz-options">
+                <label class="quiz-option"><input type="radio" name="q2" value="0"> Privacy</label>
+                <label class="quiz-option"><input type="radio" name="q2" value="1"> Security (Common Criteria)</label>
+                <label class="quiz-option"><input type="radio" name="q2" value="2"> Processing Integrity</label>
+                <label class="quiz-option"><input type="radio" name="q2" value="3"> Availability</label>
+            </div>
+            <button class="quiz-btn" onclick="checkAnswer('q2', 1)">Show Answer</button>
+            <div id="q2-explanation" class="quiz-explanation" data-text="Security, also known as the Common Criteria, is the foundational requirement and is mandatory for all SOC 2 reports."></div>
+        </div>
+    </section>
+
+    <!-- MODULE 4 -->
+    <section id="module-4" class="module">
+        <h2>Module 4: Controls</h2>
+
+        <p>You will hear the word "Control" hundreds of times. What is it?</p>
+        
+        <p>A <strong>Control</strong> is a rule, process, or mechanism you put in place to mitigate a risk.</p>
+        
+        <p>If the risk is "A hacker guesses a password," the control is "Require Multi-Factor Authentication (MFA)."</p>
+
+        <h3>Common Examples of Controls</h3>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Control Category</th>
+                    <th>Example Control</th>
+                    <th>Why it matters</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Logical Access</strong></td>
+                    <td>All employees must use MFA to access internal systems.</td>
+                    <td>Prevents compromised passwords from leading to breaches.</td>
+                </tr>
+                <tr>
+                    <td><strong>Least Privilege</strong></td>
+                    <td>Engineers only get access to production databases if required for their job.</td>
+                    <td>Limits blast radius if an engineer's laptop is stolen.</td>
+                </tr>
+                <tr>
+                    <td><strong>Access Reviews</strong></td>
+                    <td>Quarterly review of all AWS IAM users.</td>
+                    <td>Catches "ghost accounts" left behind by fired employees.</td>
+                </tr>
+                <tr>
+                    <td><strong>Change Management</strong></td>
+                    <td>All code pushed to <code>main</code> requires approval from one other engineer.</td>
+                    <td>Prevents a rogue employee from pushing a backdoor.</td>
+                </tr>
+                <tr>
+                    <td><strong>Incident Response</strong></td>
+                    <td>Company maintains and tests an incident response plan annually.</td>
+                    <td>Ensures the team knows what to do at 3 AM during a zero-day exploit.</td>
+                </tr>
+                <tr>
+                    <td><strong>Vendor Management</strong></td>
+                    <td>Company reviews the SOC 2 reports of all critical vendors (like AWS).</td>
+                    <td>Ensures your secure app isn't compromised by an insecure sub-vendor.</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="callout">
+            <strong>The Developer Experience (DevEx) Impact</strong><br>
+            As a developer, SOC 2 changes how you work. You can no longer forcefully push straight to main. You can no longer SSH into the production database just to "poke around" without a logged ticket. Controls introduce friction, but that friction equals security.
+        </div>
+
+        <div class="quiz-box">
+            <span class="quiz-header">Module 4 Quiz</span>
+            <div class="quiz-question">Which of the following is an example of a "Change Management" control?</div>
+            <div class="quiz-options">
+                <label class="quiz-option"><input type="radio" name="q3" value="0"> Conducting background checks on new hires.</label>
+                <label class="quiz-option"><input type="radio" name="q3" value="1"> Requiring MFA for GitHub.</label>
+                <label class="quiz-option"><input type="radio" name="q3" value="2"> Requiring all pull requests to have at least one peer review before merging.</label>
+                <label class="quiz-option"><input type="radio" name="q3" value="3"> Encrypting databases at rest.</label>
+            </div>
+            <button class="quiz-btn" onclick="checkAnswer('q3', 2)">Show Answer</button>
+            <div id="q3-explanation" class="quiz-explanation" data-text="Change management focuses on how updates to systems and code are authorized, tested, and deployed. Peer reviews ensure no code goes to production unverified."></div>
+        </div>
+    </section>
+
+    <!-- MODULE 5 -->
+    <section id="module-5" class="module">
+        <h2>Module 5: Evidence Collection</h2>
+
+        <p>Here is the golden rule of auditing:</p>
+        
+        <h3 style="text-align: center; color: var(--primary); font-style: italic;">"If it isn't documented, it didn't happen."</h3>
+
+        <p>Auditors are professional skeptics. If you say "We disable access when an employee is fired," the auditor will say, "Prove it."</p>
+
+        <p>This is where <strong>Evidence Collection</strong> comes in. To prove your controls are working, you must provide artifacts to the auditor.</p>
+
+        <h4>Examples of Evidence:</h4>
+        <ul>
+            <li><strong>Screenshots:</strong> A screenshot of your AWS IAM settings showing that password policies require 14 characters.</li>
+            <li><strong>Logs:</strong> A CloudTrail log showing who accessed a specific S3 bucket.</li>
+            <li><strong>Tickets:</strong> A Jira ticket showing that an engineer requested database access, and a manager approved it in the comments.</li>
+            <li><strong>GitHub History:</strong> A link to a Pull Request showing the green checkmark of a peer approval before the merge.</li>
+            <li><strong>Policies:</strong> The actual PDF of your Employee Handbook that new hires sign.</li>
+        </ul>
+
+        <div class="info-box">
+            <strong>Modern Tooling:</strong> In the past, companies used giant folders full of thousands of screenshots. Today, platforms like Vanta, Drata, and Sprinto integrate directly with AWS, GitHub, and Google Workspace to pull this evidence automatically.
+        </div>
+
+        <div class="quiz-box">
+            <span class="quiz-header">Module 5 Quiz</span>
+            <div class="quiz-question">An auditor asks for proof that an employee's access was revoked on their termination date. What is the best piece of evidence?</div>
+            <div class="quiz-options">
+                <label class="quiz-option"><input type="radio" name="q4" value="0"> An email from the CEO saying "I fired Bob."</label>
+                <label class="quiz-option"><input type="radio" name="q4" value="1"> A system log showing Bob's account was deactivated at 3:00 PM on his last day.</label>
+                <label class="quiz-option"><input type="radio" name="q4" value="2"> A calendar invite for Bob's exit interview.</label>
+                <label class="quiz-option"><input type="radio" name="q4" value="3"> Bob's final paycheck receipt.</label>
+            </div>
+            <button class="quiz-btn" onclick="checkAnswer('q4', 1)">Show Answer</button>
+            <div id="q4-explanation" class="quiz-explanation" data-text="System logs are immutable, factual records of technical actions. An email stating an intention is not proof that the technical access was actually disabled."></div>
+        </div>
+    </section>
+
+    <!-- MODULE 6 -->
+    <section id="module-6" class="module">
+        <h2>Module 6: The SOC 2 Journey</h2>
+
+        <p>Getting a SOC 2 report is not a weekend project. It is a grueling marathon that touches every department in a company.</p>
+
+        <pre>
+[ Readiness Assessment ] 
+        ↓
+[ Gap Remediation ] 
+        ↓
+[ Type I Audit (Optional but common) ] 
+        ↓
+[ Observation Period (3-12 Months) ] 
+        ↓
+[ Type II Audit & Evidence Collection ] 
+        ↓
+[ Report Issuance ]
+        </pre>
+
+        <ol>
+            <li><strong>Readiness Assessment:</strong> You hire a consultant or use software to figure out how far away you are from compliance. You realize you have 50 things to fix.</li>
+            <li><strong>Gap Remediation:</strong> You spend 2 months implementing MFA, writing policies, encrypting laptops via MDM, and locking down AWS.</li>
+            <li><strong>Observation Period:</strong> You live with these new rules. You actually do the access reviews. You actually enforce PR reviews. (This is the hardest part).</li>
+            <li><strong>External Auditor:</strong> The CPA firm requests evidence, does interviews, and checks your work.</li>
+            <li><strong>Report Issuance:</strong> You receive the final PDF report. You can now send it to enterprise buyers (usually under an NDA).</li>
+        </ol>
+
+        <div class="quiz-box">
+            <span class="quiz-header">Module 6 Quiz</span>
+            <div class="quiz-question">During which phase does a company actually fix their security vulnerabilities and write their missing policies?</div>
+            <div class="quiz-options">
+                <label class="quiz-option"><input type="radio" name="q5" value="0"> Observation Period</label>
+                <label class="quiz-option"><input type="radio" name="q5" value="1"> Report Issuance</label>
+                <label class="quiz-option"><input type="radio" name="q5" value="2"> Gap Remediation</label>
+                <label class="quiz-option"><input type="radio" name="q5" value="3"> External Audit</label>
+            </div>
+            <button class="quiz-btn" onclick="checkAnswer('q5', 2)">Show Answer</button>
+            <div id="q5-explanation" class="quiz-explanation" data-text="Gap Remediation is the phase where you fix the 'gaps' identified during your readiness assessment, before the observation period or audit begins."></div>
+        </div>
+    </section>
+
+    <!-- MODULE 7 -->
+    <section id="module-7" class="module">
+        <h2>Module 7: How Auditors Test Controls</h2>
+
+        <p>Let's get into the mind of an auditor. When evaluating a Type II report over 6 months, they don't look at <em>every single thing</em> that happened. They use statistical sampling.</p>
+
+        <h4>Population and Sampling</h4>
+        <p>If your control says "All code changes require a PR review," the auditor will ask for the <strong>Population</strong>: a list of all 500 code changes made in the last 6 months.</p>
+        <p>From that population, they will select a random <strong>Sample</strong> of 25 code changes. You must provide evidence (links to the PRs) for those specific 25.</p>
+
+        <h4>Exceptions</h4>
+        <p>What if one of those 25 PRs was merged by the CTO at 2 AM without a review to fix a critical bug? That is an <strong>Exception</strong>.</p>
+        <p>An exception doesn't mean you fail the audit! Auditors understand reality. But they will ask for an explanation. "We had an emergency P0 incident, here is the incident ticket."</p>
+
+        <h4>Deficiencies</h4>
+        <p>If there are too many exceptions (e.g., 10 out of 25 PRs had no review), the auditor will mark it as a <strong>Deficiency</strong>. If the deficiency is massive, it becomes a <strong>Material Weakness</strong>, meaning the control completely failed.</p>
+
+        <div class="callout">
+            <strong>Smart Contract Audits vs. SOC 2 Audits</strong><br>
+            A smart contract audit looks for <em>logical bugs, reentrancy vulnerabilities, and zero-days</em> in the code itself.<br><br>
+            A SOC 2 audit looks for <em>process compliance</em> in the organization. The SOC 2 auditor doesn't care if your Solidity code is safe; they care whether you followed your company's rule of having two engineers review the PR before deploying it.
+        </div>
+
+        <div class="quiz-box">
+            <span class="quiz-header">Module 7 Quiz</span>
+            <div class="quiz-question">In auditing terms, what is an "Exception"?</div>
+            <div class="quiz-options">
+                <label class="quiz-option"><input type="radio" name="q6" value="0"> A brilliant piece of code.</label>
+                <label class="quiz-option"><input type="radio" name="q6" value="1"> An instance where a designed control was not followed.</label>
+                <label class="quiz-option"><input type="radio" name="q6" value="2"> A bug found in a smart contract.</label>
+                <label class="quiz-option"><input type="radio" name="q6" value="3"> A hacker breaching the firewall.</label>
+            </div>
+            <button class="quiz-btn" onclick="checkAnswer('q6', 1)">Show Answer</button>
+            <div id="q6-explanation" class="quiz-explanation" data-text="An exception occurs when testing reveals that a control was bypassed, ignored, or failed to operate as intended in a specific instance."></div>
+        </div>
+    </section>
+
+    <!-- MODULE 8 -->
+    <section id="module-8" class="module">
+        <h2>Module 8: Reading a SOC 2 Report</h2>
+
+        <p>A SOC 2 report is typically 40 to 100 pages long. When a customer receives it, they skip straight to Section 1 to read the auditor's opinion.</p>
+
+        <h4>The Four Types of Opinions:</h4>
+        <ul>
+            <li><strong>Unqualified Opinion:</strong> The holy grail. The auditor states everything is presented fairly and controls are working. (Counter-intuitively, "unqualified" means good—it means without qualifications or caveats).</li>
+            <li><strong>Qualified Opinion:</strong> Mostly good, but there was a significant deficiency in one area. (e.g., "Everything is secure, EXCEPT their background checks were missing").</li>
+            <li><strong>Adverse Opinion:</strong> Failure. Controls are completely ineffective.</li>
+            <li><strong>Disclaimer of Opinion:</strong> The auditor couldn't get enough evidence to even make a judgment.</li>
+        </ul>
+
+        <h4>Audit Scope</h4>
+        <p>Customers must also read the <strong>Scope</strong>. If a mega-corporation has 50 software products, but their SOC 2 report only covers 1 specific product, you cannot assume the other 49 products are secure.</p>
+
+        <div class="quiz-box">
+            <span class="quiz-header">Module 8 Quiz</span>
+            <div class="quiz-question">Which auditor opinion is the best possible outcome for a company?</div>
+            <div class="quiz-options">
+                <label class="quiz-option"><input type="radio" name="q7" value="0"> Qualified Opinion</label>
+                <label class="quiz-option"><input type="radio" name="q7" value="1"> Disclaimer of Opinion</label>
+                <label class="quiz-option"><input type="radio" name="q7" value="2"> Adverse Opinion</label>
+                <label class="quiz-option"><input type="radio" name="q7" value="3"> Unqualified Opinion</label>
+            </div>
+            <button class="quiz-btn" onclick="checkAnswer('q7', 3)">Show Answer</button>
+            <div id="q7-explanation" class="quiz-explanation" data-text="An Unqualified Opinion means the auditor found no significant issues and the controls are operating effectively."></div>
+        </div>
+    </section>
+
+    <!-- MODULE 9 -->
+    <section id="module-9" class="module">
+        <h2>Module 9: Common Misconceptions</h2>
+
+        <p>SOC 2 is powerful, but it is often misunderstood. Let's clear the air.</p>
+
+        <ul>
+            <li><strong>SOC 2 is NOT hack-proof.</strong> Countless companies with pristine SOC 2 reports get breached. It proves you have a seatbelt; it doesn't mean you can't get in a car crash.</li>
+            <li><strong>SOC 2 is NOT a penetration test.</strong> A pen test is when ethical hackers try to break into your app. A SOC 2 auditor doesn't hack you. (Though, doing an annual pen test is usually a required <em>control</em> within SOC 2).</li>
+            <li><strong>SOC 2 is NOT formal verification.</strong> It does not mathematically prove your code is bug-free.</li>
+            <li><strong>Compliance Theater:</strong> This is a massive risk. A company might have a policy saying "We review all code," but engineers just blindly hit "Approve" without reading the code to satisfy the auditor. The control passes the audit, but the security is zero. That is compliance theater.</li>
+        </ul>
+    </section>
+
+    <!-- MODULE 10 -->
+    <section id="module-10" class="module">
+        <h2>Module 10: Chainlink Labs Case Study</h2>
+
+        <p>Let's apply all this theory to a real-world Web3 example: Chainlink Labs.</p>
+
+        <p>Chainlink Labs successfully achieved SOC 2 Type I attestation, alongside obtaining ISO 27001 certification (a major international security standard). Covered offerings include Cross-Chain Interoperability Protocol (CCIP), Price Feeds, SmartData, Proof of Reserve, and NAV.</p>
+
+        <p>But what does this actually mean in a Web3 context? To understand this, we must separate <strong>Organizational Trust</strong> from <strong>Protocol Trust</strong>.</p>
+
+        <h3>Organizational Trust vs. Protocol Trust</h3>
+
+        <div class="info-box">
+            <strong>Chainlink Labs != The Chainlink Protocol</strong><br>
+            Chainlink is a decentralized protocol powered by independent node operators. Chainlink Labs is a software development company that contributes to that protocol.
+        </div>
+
+        <p><strong>Protocol Trust</strong> relies on math, cryptography, consensus mechanisms, and game theory. You trust the decentralized oracle network (DON) because of cryptoeconomic security and decentralization.</p>
+
+        <p><strong>Organizational Trust</strong> relies on the maturity, security, and operational excellence of the humans building the software.</p>
+
+        <h4>What the SOC 2 Attestation Proves:</h4>
+        <p>The SOC 2 Type I proves that Chainlink Labs (the organization) has mature, enterprise-grade security controls designed correctly. It proves that when Chainlink Labs engineers write code for CCIP or Price Feeds, they follow strict change management, peer reviews, access control, and vendor management.</p>
+
+        <h4>What the SOC 2 Attestation Does NOT Prove:</h4>
+        <p>It does not prove oracle manipulation resistance. It does not prove cryptoeconomic security. It does not guarantee consensus. Those are guarantees provided by the decentralized protocol itself, not by an auditor's report on corporate policies.</p>
+
+        <p><strong>Thought Experiment:</strong> Suppose Chainlink Labs achieves SOC 2 Type II next year. What does it prove? It proves that their rigorous internal security controls operated effectively over a sustained period of time. It proves to traditional finance (TradFi) banks and enterprise institutions that the core developers behind Web3 infrastructure operate with the same operational maturity as a massive cloud provider.</p>
+
+        <div class="quiz-box">
+            <span class="quiz-header">Module 10 Quiz</span>
+            <div class="quiz-question">In the context of Chainlink, what does a SOC 2 report attest to?</div>
+            <div class="quiz-options">
+                <label class="quiz-option"><input type="radio" name="q8" value="0"> The mathematical unhackability of smart contracts.</label>
+                <label class="quiz-option"><input type="radio" name="q8" value="1"> The decentralized consensus mechanism of the DONs.</label>
+                <label class="quiz-option"><input type="radio" name="q8" value="2"> The organizational maturity and internal security controls of Chainlink Labs.</label>
+                <label class="quiz-option"><input type="radio" name="q8" value="3"> That independent node operators cannot be bribed.</label>
+            </div>
+            <button class="quiz-btn" onclick="checkAnswer('q8', 2)">Show Answer</button>
+            <div id="q8-explanation" class="quiz-explanation" data-text="SOC 2 is an evaluation of organizational controls (like employee access and code review processes at Chainlink Labs), not the decentralized protocol's cryptoeconomic or mathematical security guarantees."></div>
+        </div>
+    </section>
+
+    <!-- MODULE 11 -->
+    <section id="module-11" class="module">
+        <h2>Module 11: Expert Takeaways</h2>
+
+        <p>If you take away five things from this bootcamp, make them these:</p>
+
+        <ol>
+            <li><strong>Start Early:</strong> Do not wait until an enterprise buyer asks for a SOC 2 to start. It takes months to achieve. It will block your sales.</li>
+            <li><strong>Automate:</strong> Evidence collection is painful. Use compliance automation platforms to hook into your APIs and collect evidence automatically.</li>
+            <li><strong>Scope Carefully:</strong> Don't try to audit everything on day one. Scope your SOC 2 down to the specific systems handling critical customer data.</li>
+            <li><strong>Culture > Compliance:</strong> Avoid compliance theater. A SOC 2 report doesn't secure your app; a culture of engineers who actually care about security secures your app.</li>
+            <li><strong>It's Continuous:</strong> SOC 2 Type II is an annual recurring audit. You can't just pass it and forget about it. It is a permanent lifestyle change for a company.</li>
+        </ol>
+    </section>
+
+    <hr>
+
+    <!-- GLOSSARY -->
+    <section class="module" style="padding-top: 0;">
+        <h2>Glossary</h2>
+
+        <span class="glossary-term">SOC (System and Organization Controls)</span>
+        <p>A suite of service organization reporting options defined by the AICPA.</p>
+
+        <span class="glossary-term">TSC (Trust Services Criteria)</span>
+        <p>The framework used to evaluate controls. Includes Security, Availability, Confidentiality, Processing Integrity, and Privacy.</p>
+
+        <span class="glossary-term">Type I</span>
+        <p>An audit report reflecting the design of controls at a specific point in time.</p>
+
+        <span class="glossary-term">Type II</span>
+        <p>An audit report reflecting the operating effectiveness of controls over an observation period.</p>
+
+        <span class="glossary-term">Population</span>
+        <p>The complete set of items (like all git commits) an auditor can draw from to test a control.</p>
+
+        <span class="glossary-term">Sampling</span>
+        <p>Selecting a subset of a population to represent the whole during an audit test.</p>
+
+        <span class="glossary-term">Exception</span>
+        <p>An instance where an established control was bypassed or failed.</p>
+
+        <span class="glossary-term">Control</span>
+        <p>A policy, procedure, or technical mechanism put in place to mitigate a specific risk.</p>
+
+        <span class="glossary-term">Evidence</span>
+        <p>Artifacts (logs, screenshots, tickets) provided to the auditor to prove a control exists and works.</p>
+
+        <span class="glossary-term">Observation Period</span>
+        <p>The span of time (usually 3-12 months) covered by a Type II report.</p>
+
+        <span class="glossary-term">Material Weakness</span>
+        <p>A severe deficiency indicating that a control has failed entirely, leading to a modified auditor opinion.</p>
+
+        <span class="glossary-term">Attestation</span>
+        <p>An independent declaration by a CPA firm that your controls meet the specified criteria.</p>
+    </section>
+
+    <hr>
+
+    <!-- RESOURCES -->
+    <section class="module resource-list" style="padding-top: 0; padding-bottom: 2rem;">
+        <h2>Resources</h2>
+        <ul>
+            <li><a href="https://www.aicpa.org/topic/audit-assurance/audit-reports/soc-2" target="_blank" rel="noopener">AICPA Official SOC 2 Guidelines</a></li>
+            <li><a href="https://aws.amazon.com/compliance/soc-faqs/" target="_blank" rel="noopener">AWS SOC Compliance Resources</a></li>
+            <li><a href="https://chain.link/blog/chainlink-achieves-iso-soc-2-certifications" target="_blank" rel="noopener">Chainlink Labs Achieves SOC 2 Type I and ISO 27001</a></li>
+            <li><a href="https://vanta.com" target="_blank" rel="noopener">Vanta Compliance Automation</a></li>
+            <li><a href="https://drata.com" target="_blank" rel="noopener">Drata Continuous Compliance</a></li>
+            <li><a href="https://sprinto.com" target="_blank" rel="noopener">Sprinto Compliance Software</a></li>
+        </ul>
+    </section>
+
+</main>
+
+<script>
+    function checkAnswer(quizId, correctIndex) {
+        const options = document.getElementsByName(quizId);
+        let selected = -1;
+        for (let i = 0; i < options.length; i++) {
+            if (options[i].checked) {
+                selected = i;
+                break;
+            }
+        }
+        
+        if (selected === -1) {
+            alert("Please select an answer first.");
+            return;
+        }
+        
+        const explanationId = quizId + '-explanation';
+        const explanationEl = document.getElementById(explanationId);
+        
+        if (selected === correctIndex) {
+            explanationEl.style.display = "block";
+            explanationEl.className = "quiz-explanation correct";
+            explanationEl.innerHTML = "<strong>Correct!</strong> " + explanationEl.getAttribute("data-text");
+        } else {
+            explanationEl.style.display = "block";
+            explanationEl.className = "quiz-explanation incorrect";
+            explanationEl.innerHTML = "<strong>Incorrect.</strong> " + explanationEl.getAttribute("data-text");
+        }
+    }
+</script>
+
+</body>
+</html>

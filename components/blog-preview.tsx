@@ -4,6 +4,12 @@ import { motion } from 'framer-motion'
 
 const posts = [
   {
+    title: "SOC 2 Type I & Type II: A Complete Beginner-to-Expert Guide",
+    slug: "soc2-type-1-and-2-guide",
+    url: "/writings/soc2-guide.html",
+    date: "2026-06-25T12:00:00Z"
+  },
+  {
     title: "INCIDENT REPORT: OPERATIONAL SECURITY FAILURE AND TREASURY COMPROMISE AT STEP FINANCE (JANUARY 2026)",
     slug: "step-finance-incident",
     url: "https://docs.google.com/document/d/1RWfatb-H2O0kiwTdE5_nvcPcwhsP4LQFWLkirliiSiM/edit?usp=sharing",
@@ -98,7 +104,6 @@ export default function BlogPreview() {
 
           <div className="flex flex-col space-y-1">
             {posts.map((post, i) => {
-              const formattedDate = new Date(post.date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
               return (
               <motion.a
                 key={post.title}
@@ -120,12 +125,6 @@ export default function BlogPreview() {
                       {post.title}
                     </h3>
                   </div>
-                </div>
-                
-                <div className="flex items-center gap-4 mt-2 sm:mt-0 sm:ml-6 shrink-0">
-                  <span className="font-mono text-xs text-zinc-600 group-hover:text-zinc-400 transition-colors whitespace-nowrap">
-                    {formattedDate}
-                  </span>
                 </div>
               </motion.a>
             )})}
