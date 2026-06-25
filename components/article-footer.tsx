@@ -25,6 +25,11 @@ export default function ArticleFooter({ slug }: { slug: string }) {
   const [status, setStatus] = useState<'idle' | 'submitting' | 'success'>('idle')
 
   useEffect(() => {
+    // Check if the user already liked this article in this browser
+    if (localStorage.getItem(`liked_${slug}`)) {
+      setLiked(true)
+    }
+
     fetch(`/api/article?slug=${slug}`, { cache: 'no-store' })
       .then(res => res.json())
       .then(data => {
@@ -39,11 +44,14 @@ export default function ArticleFooter({ slug }: { slug: string }) {
     setLiked(true)
     setLikeCount(prev => prev + 1)
     
+    // Save to localStorage immediately so it survives refreshes
+    localStorage.setItem(`liked_${slug}`, 'true')
+    
     await fetch('/api/article/like', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ slug })
-    })
+    }).catch(() => {})
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
