@@ -4,18 +4,35 @@
       "likes": 3,
       "feedbacks": [
         {
-          "id": "1782395085535",
-          "feedback": "wefwef",
-          "topics": "fwefwef",
+          "id": "1782395085535-legacy",
+          "type": "thought",
+          "text": "wefwef",
           "createdAt": "2026-06-25T13:44:45.535Z"
         }
       ]
     },
     "soc2-type-1-and-2-guide": {
-      "likes": 2,
-      "feedbacks": []
+      "likes": 4,
+      "feedbacks": [
+        {
+          "id": "1782409590383-m1jjkdfcdx",
+          "type": "thought",
+          "text": "This is a great article on SOC 2!",
+          "createdAt": "2026-06-25T17:46:30.383Z"
+        },
+        {
+          "id": "1782409597212-iv8x3piz1qj",
+          "type": "topic",
+          "text": "Write about ISO 27001 vs SOC 2 comparison",
+          "createdAt": "2026-06-25T17:46:37.213Z"
+        }
+      ]
     },
     "trail-of-bits-raising-the-standard": {
+      "likes": 1,
+      "feedbacks": []
+    },
+    "mutation-testing-penpie": {
       "likes": 1,
       "feedbacks": []
     }

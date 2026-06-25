@@ -6,8 +6,8 @@ const dbPath = path.join(process.cwd(), 'database.json');
 
 export type Feedback = {
   id: string;
-  feedback: string;
-  topics: string;
+  type: 'thought' | 'topic'; // explicit type so we can filter correctly
+  text: string;
   createdAt: string;
 };
 
@@ -21,13 +21,22 @@ export type Database = {
 };
 
 function readDb(): Database {
-  if (!fs.existsSync(dbPath)) {
+  try {
+    if (!fs.existsSync(dbPath)) {
+      const initialDb: Database = { articles: {} };
+      fs.writeFileSync(dbPath, JSON.stringify(initialDb, null, 2));
+      return initialDb;
+    }
+    const data = fs.readFileSync(dbPath, 'utf8');
+    const parsed = JSON.parse(data);
+    // Ensure articles key always exists
+    if (!parsed.articles) parsed.articles = {};
+    return parsed;
+  } catch {
     const initialDb: Database = { articles: {} };
     fs.writeFileSync(dbPath, JSON.stringify(initialDb, null, 2));
     return initialDb;
   }
-  const data = fs.readFileSync(dbPath, 'utf8');
-  return JSON.parse(data);
 }
 
 function writeDb(db: Database) {
@@ -52,19 +61,24 @@ export function addLike(slug: string): ArticleData {
   return db.articles[slug];
 }
 
-export function addFeedback(slug: string, feedback: string, topics: string): ArticleData {
+export function addFeedback(slug: string, type: 'thought' | 'topic', text: string): ArticleData {
+  if (!text || !text.trim()) {
+    // Don't save empty entries
+    return getArticle(slug);
+  }
+
   const db = readDb();
   if (!db.articles[slug]) {
     db.articles[slug] = { likes: 0, feedbacks: [] };
   }
-  
+
   const newFeedback: Feedback = {
-    id: Date.now().toString(),
-    feedback,
-    topics,
-    createdAt: new Date().toISOString()
+    id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+    type,
+    text: text.trim(),
+    createdAt: new Date().toISOString(),
   };
-  
+
   db.articles[slug].feedbacks.push(newFeedback);
   writeDb(db);
   return db.articles[slug];
