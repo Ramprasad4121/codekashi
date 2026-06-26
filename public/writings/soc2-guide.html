@@ -806,7 +806,9 @@
 
         <p>Let's apply all this theory to a real-world Web3 example: Chainlink Labs.</p>
 
-        <p>Chainlink Labs successfully achieved SOC 2 Type I attestation, alongside obtaining ISO 27001 certification (a major international security standard). Covered offerings include Cross-Chain Interoperability Protocol (CCIP), Price Feeds, SmartData, Proof of Reserve, and NAV.</p>
+        <p>Chainlink Labs first achieved SOC 2 Type I attestation and ISO/IEC 27001:2022 certification in August 2025. The examinations were performed by Deloitte & Touche LLP, and covered Chainlink Data Feeds (specifically Price Feeds and SmartData, which includes Proof of Reserve and Net Asset Value) and the Cross-Chain Interoperability Protocol (CCIP). This made Chainlink the first data and interoperability oracle platform to hold both certifications.</p>
+
+        <p>The story didn't stop at Type I. In April 2026, Deloitte completed a full <strong>SOC 2 Type II examination</strong> across that same scope: CCIP and Data Feeds. This is a materially bigger claim than Type I alone, because Type II verifies that controls actually operated effectively over a sustained period of live production use, not just that they were well-designed on a single audit day. With this milestone, Chainlink became the only oracle platform holding SOC 2 Type I, SOC 2 Type II, and ISO 27001 simultaneously, a combination no other oracle network has matched as of this writing.</p>
 
         <p>But what does this actually mean in a Web3 context? To understand this, we must separate <strong>Organizational Trust</strong> from <strong>Protocol Trust</strong>.</p>
 
@@ -814,32 +816,32 @@
 
         <div class="info-box">
             <strong>Chainlink Labs != The Chainlink Protocol</strong><br>
-            Chainlink is a decentralized protocol powered by independent node operators. Chainlink Labs is a software development company that contributes to that protocol.
+            Chainlink is a decentralized protocol powered by independent node operators. Chainlink Labs is a primary contributing software development company to that protocol.
         </div>
 
-        <p><strong>Protocol Trust</strong> relies on math, cryptography, consensus mechanisms, and game theory. You trust the decentralized oracle network (DON) because of cryptoeconomic security and decentralization.</p>
+        <p><strong>Protocol Trust</strong> relies on math, cryptography, consensus mechanisms, and game theory. You trust the decentralized oracle network (DON) because of cryptoeconomic security and decentralization, not because of a paper attestation.</p>
 
         <p><strong>Organizational Trust</strong> relies on the maturity, security, and operational excellence of the humans building the software.</p>
 
         <h4>What the SOC 2 Attestation Proves:</h4>
-        <p>The SOC 2 Type I proves that Chainlink Labs (the organization) has mature, enterprise-grade security controls designed correctly. It proves that when Chainlink Labs engineers write code for CCIP or Price Feeds, they follow strict change management, peer reviews, access control, and vendor management.</p>
+        <p>The SOC 2 Type I and Type II attestations prove that Chainlink Labs (the organization) has mature, enterprise-grade security controls, designed correctly and, as of the Type II result, consistently operated over an extended production window, verified by a Big Four accounting firm. It proves that when Chainlink Labs engineers write code for CCIP or Price Feeds, they follow strict change management, peer review, access control, and vendor management, and that they kept following those practices over time rather than just on the day of the audit.</p>
 
         <h4>What the SOC 2 Attestation Does NOT Prove:</h4>
-        <p>It does not prove oracle manipulation resistance. It does not prove cryptoeconomic security. It does not guarantee consensus. Those are guarantees provided by the decentralized protocol itself, not by an auditor's report on corporate policies.</p>
+        <p>It does not prove oracle manipulation resistance. It does not prove cryptoeconomic security. It does not guarantee consensus. Those are guarantees provided entirely by the decentralized protocol's own design and economic incentives, not by an auditor's report on corporate policies.</p>
 
-        <p><strong>Thought Experiment:</strong> Suppose Chainlink Labs achieves SOC 2 Type II next year. What does it prove? It proves that their rigorous internal security controls operated effectively over a sustained period of time. It proves to traditional finance (TradFi) banks and enterprise institutions that the core developers behind Web3 infrastructure operate with the same operational maturity as a massive cloud provider.</p>
+        <p><strong>Why this matters in practice:</strong> For a bank or asset manager running vendor risk review before deploying capital through tokenized assets on-chain, the SOC 2 Type II result is not a marketing claim, it's the specific document their compliance team requires before they're permitted to sign off on a vendor. With Type II, Chainlink Labs now clears the same procurement bar institutions already demand from cloud vendors like AWS. That's a genuine unlock for institutional adoption. It is a claim about organizational discipline, though, not a claim about the oracle network's resistance to attack, and the two are worth keeping separate whenever you see "SOC 2" used as shorthand for "secure" in a crypto context.</p>
 
         <div class="quiz-box">
             <span class="quiz-header">Module 10 Quiz</span>
-            <div class="quiz-question">In the context of Chainlink, what does a SOC 2 report attest to?</div>
+            <div class="quiz-question">As of April 2026, what makes Chainlink unique among oracle platforms in terms of compliance certifications?</div>
             <div class="quiz-options">
-                <label class="quiz-option"><input type="radio" name="q8" value="0"> The mathematical unhackability of smart contracts.</label>
-                <label class="quiz-option"><input type="radio" name="q8" value="1"> The decentralized consensus mechanism of the DONs.</label>
-                <label class="quiz-option"><input type="radio" name="q8" value="2"> The organizational maturity and internal security controls of Chainlink Labs.</label>
-                <label class="quiz-option"><input type="radio" name="q8" value="3"> That independent node operators cannot be bribed.</label>
+                <label class="quiz-option"><input type="radio" name="q8" value="0"> It is the only oracle platform with a government-issued security license.</label>
+                <label class="quiz-option"><input type="radio" name="q8" value="1"> It is the only oracle platform to hold SOC 2 Type I, SOC 2 Type II, and ISO 27001 simultaneously.</label>
+                <label class="quiz-option"><input type="radio" name="q8" value="2"> It is the only oracle platform that has never had a security incident.</label>
+                <label class="quiz-option"><input type="radio" name="q8" value="3"> It is the only oracle platform audited by the SEC.</label>
             </div>
-            <button class="quiz-btn" onclick="checkAnswer('q8', 2)">Show Answer</button>
-            <div id="q8-explanation" class="quiz-explanation" data-text="SOC 2 is an evaluation of organizational controls (like employee access and code review processes at Chainlink Labs), not the decentralized protocol's cryptoeconomic or mathematical security guarantees."></div>
+            <button class="quiz-btn" onclick="checkAnswer('q8', 1)">Show Answer</button>
+            <div id="q8-explanation" class="quiz-explanation" data-text="As of April 2026, Chainlink is the only data and interoperability oracle platform holding SOC 2 Type I, SOC 2 Type II, and ISO/IEC 27001:2022 simultaneously. This reflects organizational and process maturity at Chainlink Labs, not a guarantee about the protocol's cryptoeconomic security."></div>
         </div>
     </section>
 
@@ -910,6 +912,7 @@
             <li><a href="https://www.aicpa.org/topic/audit-assurance/audit-reports/soc-2" target="_blank" rel="noopener">AICPA Official SOC 2 Guidelines</a></li>
             <li><a href="https://aws.amazon.com/compliance/soc-faqs/" target="_blank" rel="noopener">AWS SOC Compliance Resources</a></li>
             <li><a href="https://chain.link/blog/chainlink-achieves-iso-soc-2-certifications" target="_blank" rel="noopener">Chainlink Labs Achieves SOC 2 Type I and ISO 27001</a></li>
+            <li><a href="https://chain.link/security-certification" target="_blank" rel="noopener">Chainlink's Institutional-Grade Security and Compliance Page</a></li>
             <li><a href="https://vanta.com" target="_blank" rel="noopener">Vanta Compliance Automation</a></li>
             <li><a href="https://drata.com" target="_blank" rel="noopener">Drata Continuous Compliance</a></li>
             <li><a href="https://sprinto.com" target="_blank" rel="noopener">Sprinto Compliance Software</a></li>
