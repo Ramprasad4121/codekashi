@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Before OCR: How Chainlink Used to Work, and Why It Had to Change</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      line-height: 1.8;
+      color: #e4e4e7;
+      background-color: #09090b;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+      font-size: 1.1rem;
+    }
+    h1, h2, h3, h4 { color: #ffffff; margin-top: 2rem; margin-bottom: 1rem; }
+    h1 { font-size: 2.25rem; font-weight: 700; line-height: 1.2; }
+    h2 { font-size: 1.8rem; }
+    h3 { font-size: 1.5rem; }
+    a { color: #60a5fa; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    p { margin-bottom: 1.5rem; }
+    img { max-width: 100%; height: auto; border-radius: 0.5rem; margin: 2rem 0; }
+    pre { background: #18181b; padding: 1.5rem; border-radius: 0.5rem; overflow-x: auto; font-family: monospace; }
+    code { background: #18181b; padding: 0.2rem 0.4rem; border-radius: 0.25rem; font-family: monospace; font-size: 0.9em; }
+    blockquote { border-left: 4px solid #3f3f46; margin: 0; padding-left: 1rem; color: #a1a1aa; font-style: italic; }
+    figure { margin: 2rem 0; }
+    figcaption { text-align: center; color: #a1a1aa; font-size: 0.9rem; margin-top: 0.5rem; }
+  </style>
+</head>
+<body>
+  <h1>Before OCR: How Chainlink Used to Work, and Why It Had to Change</h1>
+  <p>Day one of this series covered the <a href="https://dev.to/0xramprasad/the-oracle-problem-isnt-about-data-its-about-trust-minimization-jap">oracle problem</a> itself: smart contracts are deterministic on purpose, which means they can't reach the internet, which means something has to bridge that gap without quietly reintroducing centralized trust. Today is about the part most explainer content skips entirely: what that bridge actually looked like before Chainlink built Offchain Reporting, and why the original design hit a wall hard enough to force a rewrite.</p>
+
+<p>This matters more than it sounds like it should. Most current Chainlink content jumps straight to OCR and DONs as if they always existed. They didn't. Chainlink's first working version, the Basic Request Model, is still live in production today for direct API calls outside the Data Feeds and Automation products, and understanding its limitations is the fastest way to understand why every later architectural decision looks the way it does.</p>
+
+<h2>
+  <a name="what-a-chainlink-node-actually-is" href="#what-a-chainlink-node-actually-is">
+  </a>
+  What a Chainlink node actually is
+</h2>
+
+<p>Strip away the branding and a Chainlink node is unglamorous: it's a piece of software, typically run as a long-lived service, that watches the blockchain for specific events, executes a defined task when it sees one, and writes a result back on-chain. That's the whole job. The node doesn't decide what data matters or how to interpret it. It runs a Job, which is a configuration file specifying exactly what to do when triggered, in what order, using which adapters.</p>
+
+<p>A Job is made of Tasks chained together. A typical early Job for an HTTP GET request looked like: listen for a specific on-chain event, make an HTTP request to a URL, parse the JSON response at a specified path, convert the result into a blockchain-compatible type, then send a transaction back. Each of those steps is a Task, and Chainlink ships a set of core adapters that handle the common ones out of the box, so node operators write configuration rather than custom code for most standard data requests.</p>
+
+<p>One detail worth sitting with: a single node can run many different Jobs simultaneously, each with its own unique Job ID. If you request a string from an API, that's a different Job ID than requesting the same data as a uint256, because the conversion task at the end differs. This is why early Chainlink integration code looks like it's wiring up a specific Job ID rather than just calling a generic "get data" function. You're not calling an API. You're triggering a specific, pre-configured pipeline that happens to end in an API call.</p>
+
+<h2>
+  <a name="the-basic-request-model-how-the-original-cycle-worked" href="#the-basic-request-model-how-the-original-cycle-worked">
+  </a>
+  The Basic Request Model: how the original cycle worked
+</h2>
+
+<p>Before OCR, before DONs in the modern sense, Chainlink ran on what's now called the Basic Request Model, sometimes called the Direct Request Model. The core idea is simple: an oracle only sends data to the blockchain after a direct, explicit request from a consumer contract. Nothing happens proactively. Here's the actual cycle, end to end.</p>
+
+<p>A consumer contract that wants external data inherits from <code>ChainlinkClient.sol</code>. To make a request, it doesn't call the oracle contract directly with a normal function call. Instead, it goes through the LINK token itself. LINK is an ERC-677 token, which extends the standard ERC-20 interface with one additional function: <code>transferAndCall</code>. ERC-677 lets a token transfer and a contract call happen atomically in a single transaction, which matters because the standard ERC-20 pattern of <code>approve</code> then <code>transferFrom</code> takes two separate transactions and two separate gas payments to accomplish the same thing.</p>
+
+<p>So the consumer contract calls <code>transferAndCall</code> on the LINK token, sending payment to the oracle's contract address along with encoded request data. That triggers <code>onTokenTransfer</code> on the receiving Operator contract, which decodes the request and emits an <code>OracleRequest</code> event containing everything needed to fulfill it: the job ID, the callback address, the callback function selector, and the request parameters.</p>
+
+<p>This is the part that's easy to underrate: the off-chain Chainlink node isn't polling the blockchain for new requests. It's watching for that specific <code>OracleRequest</code> event. The moment the event fires, the node picks it up, runs the corresponding Job (fetch the URL, parse the response, convert the type), and then calls <code>fulfillOracleRequest</code> back on the Operator contract, which in turn calls the callback function on the original consumer contract with the result. The consumer contract never calls out. It registers a request and waits to be called back. That callback pattern, request now, get a response later via a separate transaction, is the foundational interaction model underneath everything Chainlink has built since, including products that look nothing like a simple API call.</p>
+
+<h2>
+  <a name="the-32byte-wall-and-why-operatorsol-exists" href="#the-32byte-wall-and-why-operatorsol-exists">
+  </a>
+  The 32-byte wall, and why Operator.sol exists
+</h2>
+
+<p>The original on-chain contract for receiving and fulfilling requests was <code>Oracle.sol</code>. It worked, and a meaningful amount of early Chainlink integration ran on it. It also had a hard limitation that became a real engineering constraint as use cases got more ambitious: any value returned to a consumer contract had to fit inside a single 32-byte EVM word. If your API returned a single price as a <code>uint256</code>, fine, that fits. If you needed multiple values back from one request, say BTC price, USD price, and EUR price from a single API call, or any response too large for one word, you were forced to either split it into multiple separate requests or get creative with encoding tricks that added complexity and gas cost.</p>
+
+<p>This wasn't a bug. It reflects how the original <code>fulfillOracleRequest</code> function was written: it expects a <code>bytes32</code> response parameter, baked into the function signature. There's no way to widen that without changing the function itself, and changing it would break every consumer contract already built against the existing interface.</p>
+
+<p>Chainlink's fix was <code>Operator.sol</code>, which superseded <code>Oracle.sol</code> as the recommended contract for new node operator deployments. Operator.sol kept backward-compatible support for the original <code>oracleRequest</code> flow so existing integrations didn't break, but it added a new fulfillment path: <code>fulfillOracleRequest2</code>, which accepts an arbitrary <code>bytes</code> parameter instead of a fixed <code>bytes32</code>. That single change unlocks multi-word responses. A consumer contract can now receive several return values from one request, or one large structured payload, in a single callback, instead of being artificially constrained to whatever fits in 32 bytes.</p>
+
+<p>If you're auditing or reviewing a contract that integrates with Chainlink's legacy request model, this is worth checking directly: is it built against <code>Oracle.sol</code> and the single-word constraint, or <code>Operator.sol</code> with multi-word support? It tells you something concrete about how old the integration pattern is and what assumptions the contract author was working under.</p>
+
+<h2>
+  <a name="why-node-operators-run-more-than-one-wallet" href="#why-node-operators-run-more-than-one-wallet">
+  </a>
+  Why node operators run more than one wallet
+</h2>
+
+<p><a href="https://media2.dev.to/dynamic/image/width=800%2Cheight=%2Cfit=scale-down%2Cgravity=auto%2Cformat=auto/https%3A%2F%2Fdev-to-uploads.s3.us-east-2.amazonaws.com%2Fuploads%2Farticles%2F8fux72tb6rn45p51pruc.png" class="article-body-image-wrapper"><img src="https://media2.dev.to/dynamic/image/width=800%2Cheight=%2Cfit=scale-down%2Cgravity=auto%2Cformat=auto/https%3A%2F%2Fdev-to-uploads.s3.us-east-2.amazonaws.com%2Fuploads%2Farticles%2F8fux72tb6rn45p51pruc.png" alt=" " loading="lazy" width="800" height="567"></a></p>
+
+<p>Here's a problem that has nothing to do with smart contract logic and everything to do with running real infrastructure: a single Chainlink node fulfilling requests from a single externally-owned account hits an ordering problem the moment it has more than one job type to serve.</p>
+
+<p>Picture a node fulfilling two kinds of requests: a one-off API call for, say, a sports result, and a recurring ETH/USD price feed update that several DeFi protocols depend on. If both transactions are signed and sent from the same EOA, transactions on that account are necessarily ordered by nonce. The first request submitted gets confirmed first, regardless of which one is actually time-sensitive. Worse, if that first transaction gets stuck, for instance because the gas price wasn't set high enough to get included, every subsequent transaction from that same EOA stays pending behind it until the stuck one is bumped or canceled. A price feed update that DeFi protocols are relying on for liquidation logic can end up queued behind an unrelated, lower-priority request, purely because they happened to share a wallet.</p>
+
+<p>Chainlink's answer is to let a single node operate multiple EOAs, paired with Forwarder contracts that make those multiple addresses look like one from the consumer contract's point of view, the same way a reverse proxy lets many backend servers appear as a single address to a client. A node operator can dedicate one EOA to price feed jobs and a separate EOA to general API request jobs, so a stuck or slow transaction in one lane never blocks the other. Forwarder contracts also draw a clean security line: they distinguish between an owner account, which should be a properly secured address like a hardware wallet or multisig, and authorized sender accounts, the hot wallets that the node actually uses day to day to sign and send fulfillment transactions. If a node's hot wallet is ever compromised, the owner can revoke that address from the authorized senders list without losing control of the underlying Operator contract itself. That's a meaningful separation of concerns for anyone reviewing a node operator's security posture: the hot wallet doing daily signing should never be the same key that controls contract ownership.</p>
+
+<h2>
+  <a name="what-this-sets-up-for-ocr" href="#what-this-sets-up-for-ocr">
+  </a>
+  What this sets up for OCR
+</h2>
+
+<p>None of this is centralized in some careless sense. The Basic Request Model has a real trust assumption: you're relying on the specific node and operator you pointed your consumer contract at. There's no aggregation, no multi-node consensus, no built-in resistance to that one node having an outage, a bug, or simply going offline. If you want a price feed that's actually resistant to any single party's failure, the Basic Request Model alone doesn't get you there. You'd need to deploy several independent nodes, have each respond to its own request, and build separate on-chain logic to reconcile their answers, which is exactly the gas-cost-and-coordination problem outlined on day one of this series.</p>
+
+<p>That gap is the entire reason Offchain Reporting exists. Tomorrow's article goes through OCR itself: how nodes in a decentralized oracle network reach consensus on a single answer off-chain, sign it together, and submit it as one transaction instead of many. The Basic Request Model is the right starting point to understand that shift, because OCR isn't a different idea bolted on top. It's a direct answer to the specific failure modes this article just walked through: single points of failure, ordering and gas problems from running infrastructure at scale, and the ceiling on what a single request-response cycle between one consumer and one node can actually guarantee.</p>
+
+
+<hr>
+
+<p><em>I'm a smart contract security researcher writing through Chainlink's full architecture for 28 days, from the node layer up to the Chainlink Runtime Environment. Follow along at <a href="https://www.ramprasadgoud.dev/#writing" target="_blank" rel="noopener noreferrer">ramprasadgoud.dev</a> or on X <a href="https://x.com/0xramprasad" target="_blank" rel="noopener noreferrer">@0xramprasad</a>.</em></p>
+
+
+</body>
+</html>

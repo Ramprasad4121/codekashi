@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chainlink Automation Isn't a Cron Job. It's a Consensus Decision</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      line-height: 1.8;
+      color: #e4e4e7;
+      background-color: #09090b;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+      font-size: 1.1rem;
+    }
+    h1, h2, h3, h4 { color: #ffffff; margin-top: 2rem; margin-bottom: 1rem; }
+    h1 { font-size: 2.25rem; font-weight: 700; line-height: 1.2; }
+    h2 { font-size: 1.8rem; }
+    h3 { font-size: 1.5rem; }
+    a { color: #60a5fa; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    p { margin-bottom: 1.5rem; }
+    img { max-width: 100%; height: auto; border-radius: 0.5rem; margin: 2rem 0; }
+    pre { background: #18181b; padding: 1.5rem; border-radius: 0.5rem; overflow-x: auto; font-family: monospace; }
+    code { background: #18181b; padding: 0.2rem 0.4rem; border-radius: 0.25rem; font-family: monospace; font-size: 0.9em; }
+    blockquote { border-left: 4px solid #3f3f46; margin: 0; padding-left: 1rem; color: #a1a1aa; font-style: italic; }
+    figure { margin: 2rem 0; }
+    figcaption { text-align: center; color: #a1a1aa; font-size: 0.9rem; margin-top: 0.5rem; }
+  </style>
+</head>
+<body>
+  <h1>Chainlink Automation Isn't a Cron Job. It's a Consensus Decision</h1>
+  <h1>
+  <a name="the-mental-model-most-developers-have-is-wrong" href="#the-mental-model-most-developers-have-is-wrong">
+  </a>
+  The mental model most developers have is wrong
+</h1>
+
+<p>Ask most developers how Chainlink Automation works and they'll say something like: "A bot checks your contract on a schedule, and if <code>checkUpkeep</code> returns true, it calls <code>performUpkeep</code>." That's not wrong exactly, but it's missing the part that actually matters for security: the decision to call <code>performUpkeep</code> isn't made by one bot. It's made by a decentralized oracle network reaching consensus through OCR3, and the result is cryptographically signed before anything touches the chain.</p>
+
+<p>That distinction isn't academic. The security properties of your automated contract depend entirely on which version of this mental model you're using when you design it.</p>
+
+<p>This is day 8 of the 28-day Chainlink architecture series. Today goes through Automation's actual architecture, the three trigger types, the OCR3 consensus flow, and the audit-relevant mistakes that come from treating Automation as a simple keeper bot.</p>
+
+<h2>
+  <a name="what-an-upkeep-actually-is" href="#what-an-upkeep-actually-is">
+  </a>
+  What an Upkeep actually is
+</h2>
+
+<p>An Upkeep is a registered job in the Automation network. When you register an Upkeep, you're telling the Automation Registry: "Here is a contract, here is the condition to check, here is the function to call when that condition is true, and here is the LINK balance funding the operation."</p>
+
+<p>The Registry is the coordination layer. It tracks which Upkeeps exist, which node operators are registered to service them, and how much each Upkeep has paid for work already done. Node operators don't discover Upkeeps by watching the chain themselves. They query the Registry to know what to service.</p>
+
+<h2>
+  <a name="three-trigger-types-not-one" href="#three-trigger-types-not-one">
+  </a>
+  Three trigger types, not one
+</h2>
+
+<p>This is where most content oversimplifies. Automation isn't just "runs on a schedule." There are three distinct trigger types, each with a different check mechanism:</p>
+
+<p><strong>Time-based triggers</strong> are the closest thing to a cron job. You specify a CRON expression and the network calls your function on that schedule. As of December 11, 2025, time-based upkeeps were updated so that only the unique Forwarder contract assigned to your specific Upkeep can call the target function, removing the ability of third parties to trigger the upkeep directly and preventing a class of attacks where an insufficiently-gated call with wrong gas parameters would tick the timer forward without successfully executing the intended action.</p>
+
+<p><strong>Custom logic triggers</strong> are the most flexible. Your contract implements <code>AutomationCompatibleInterface</code>, which requires two functions: <code>checkUpkeep</code> and <code>performUpkeep</code>. Nodes simulate <code>checkUpkeep</code> off-chain as a view function to determine eligibility, then call <code>performUpkeep</code> on-chain when consensus says it's time. This is where most of the security-relevant design decisions live, covered in detail below.</p>
+
+<p><strong>Log triggers</strong> are event-driven. Instead of polling a condition on every block, an Upkeep fires when a specific event is emitted by a specific contract. The Automation network monitors for the log and triggers <code>performUpkeep</code> when it appears. This enables reactive automation: a Uniswap swap fires an event, your Upkeep responds. Practical for arbitrage bots, liquidation watchers, and any system that needs to react to on-chain events rather than polling state.</p>
+
+<h2>
+  <a name="the-ocr3-consensus-flow-step-by-step" href="#the-ocr3-consensus-flow-step-by-step">
+  </a>
+  The OCR3 consensus flow, step by step
+</h2>
+
+<p>Here's what actually happens from the moment an Upkeep becomes eligible to the moment <code>performUpkeep</code> executes. This is the part the "cron job" mental model completely misses.</p>
+
+<p>Automation nodes form a peer-to-peer network using OCR3, the same protocol Day 4 of this series covered in the context of Data Feeds. Each node independently simulates the <code>checkUpkeep</code> function against its own view of the chain state. Not one node. Every node in the network, independently, running the same simulation.</p>
+
+<p>When a node's simulation returns <code>upkeepNeeded = true</code>, it doesn't immediately send a transaction. It broadcasts that observation to the other nodes in the network. The OCR3 consensus round then proceeds: nodes share their observations, reach agreement on which Upkeeps are eligible, and sign a report. That signed report contains the <code>performData</code> that will be executed on-chain.</p>
+
+<p>The signed report is submitted to the Registry contract. The Registry validates the report's signatures before executing anything. If the signatures don't represent a sufficient quorum of the configured node set, nothing executes. The cryptographic guarantee isn't just "nodes checked," it's "enough independent nodes agreed AND the Registry verified their agreement before touching your contract."</p>
+
+<p>This is why Automation is called verifiable compute, not just automated compute. The on-chain validation step is where the decentralization claim actually gets enforced, exactly like the aggregator contract's signature check in the Data Feeds architecture.</p>
+
+<h2>
+  <a name="checkupkeep-free-computation-real-design-constraints" href="#checkupkeep-free-computation-real-design-constraints">
+  </a>
+  checkUpkeep: free computation, real design constraints
+</h2>
+
+<p><code>checkUpkeep</code> is a view function. It costs no gas when simulated off-chain, which is exactly why nodes can afford to simulate it on every block for every registered Upkeep without burning through LINK balances constantly. The entire point of the <code>checkUpkeep</code>/<code>performUpkeep</code> separation is to push expensive computation off-chain for free and only pay for the on-chain execution when it's actually needed.</p>
+
+<p>This creates a real design pattern: do all your complex logic in <code>checkUpkeep</code>. Determine exactly which accounts need liquidating, which positions need rebalancing, which indexes in an array have crossed a threshold. Encode all of that as <code>performData</code>. Then <code>performUpkeep</code> receives that pre-computed result and executes only what <code>checkUpkeep</code> already determined was necessary.</p>
+
+<p>One constraint that bites developers: <code>checkUpkeep</code> has a gas limit for the simulation. If your condition check runs too much computation, the simulation exceeds <code>checkGasLimit</code> and the Upkeep is simply not performed, with no on-chain revert to surface the issue. The failure is silent from the contract's perspective.</p>
+
+<h2>
+  <a name="the-audit-checklist-for-automation-integrations" href="#the-audit-checklist-for-automation-integrations">
+  </a>
+  The audit checklist for Automation integrations
+</h2>
+
+<p><strong>1. Is <code>performUpkeep</code> gated properly?</strong></p>
+
+<p><code>performUpkeep</code> will be called by the Registry (or a Forwarder for time-based Upkeeps). If your <code>performUpkeep</code> function can be called by any address, anyone can trigger it with arbitrary <code>performData</code>, not just the Automation network. Either check <code>msg.sender</code> against the Registry address, or use Chainlink's Forwarder pattern that assigns a unique, immutable caller address to each Upkeep.<br>
+</p>
+
+<div class="highlight js-code-highlight">
+<pre class="highlight plaintext"><code>// VULNERABLE: no caller check
+function performUpkeep(bytes calldata performData) external override {
+    // anyone can call this
+}
+
+// SAFER: restrict to the Registry or Forwarder
+function performUpkeep(bytes calldata performData) external override {
+    require(msg.sender == forwarder, "Only forwarder");
+    // execute
+}
+</code></pre>
+<div class="highlight__panel js-actions-panel">
+<div class="highlight__panel-action js-fullscreen-code-action">
+    <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" viewbox="0 0 24 24" class="highlight-action crayons-icon highlight-action--fullscreen-on"><title>Enter fullscreen mode</title>
+    <path d="M16 3h6v6h-2V5h-4V3zM2 3h6v2H4v4H2V3zm18 16v-4h2v6h-6v-2h4zM4 19h4v2H2v-6h2v4z"></path>
+</svg>
+
+    <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" viewbox="0 0 24 24" class="highlight-action crayons-icon highlight-action--fullscreen-off"><title>Exit fullscreen mode</title>
+    <path d="M18 7h4v2h-6V3h2v4zM8 9H2V7h4V3h2v6zm10 8v4h-2v-6h6v2h-4zM8 15v6H6v-4H2v-2h6z"></path>
+</svg>
+
+</div>
+</div>
+</div>
+
+
+
+<p><strong>2. Is <code>performUpkeep</code> idempotent?</strong></p>
+
+<p>If <code>checkUpkeep</code> returns <code>true</code> for a condition, multiple nodes in the network may attempt to call <code>performUpkeep</code> during the same eligibility window before the on-chain state updates. Your <code>performUpkeep</code> should check the condition again on-chain and return safely (not revert) if the work is already done. A revert inside <code>performUpkeep</code> doesn't just fail the transaction, it can affect how the Automation network handles retry logic.</p>
+
+<p><strong>3. Is the gas limit set high enough?</strong></p>
+
+<p>The <code>performGasLimit</code> is set at registration time. If <code>performUpkeep</code>'s execution exceeds this limit, the network won't execute it because the simulation would show it failing. Unlike a regular transaction where you find out at execution time, Automation won't even attempt on-chain execution if the simulation exceeds the limit. This is a silent non-execution, not a revert you'll see on a block explorer.</p>
+
+<p><strong>4. Is the LINK balance monitored?</strong></p>
+
+<p>An Upkeep with a zero or below-minimum LINK balance simply stops being performed. There's no on-chain revert, no error, just silence. For a liquidation bot or a DeFi protocol relying on Automation for critical maintenance, running out of LINK at the wrong moment has real financial consequences. Automate the top-up or set an alert before the balance hits the minimum threshold.</p>
+
+<p><strong>5. Is <code>checkUpkeep</code> view-only with no state changes?</strong></p>
+
+<p><code>checkUpkeep</code> is simulated off-chain as a view function. Any state changes inside <code>checkUpkeep</code> will not persist (it's a simulation, not an actual transaction). Code that assumes <code>checkUpkeep</code> writes to storage is silently wrong: the check runs, the write appears to happen in the simulation context, and then evaporates when the simulation ends.</p>
+
+<h2>
+  <a name="a-concrete-pattern-offchain-computation-onchain-precision" href="#a-concrete-pattern-offchain-computation-onchain-precision">
+  </a>
+  A concrete pattern: off-chain computation, on-chain precision
+</h2>
+
+<p>Here's what the <code>checkUpkeep</code>/<code>performUpkeep</code> split looks like when used properly for something non-trivial, like rebalancing a set of vault positions when any of them drift past a threshold.<br>
+</p>
+
+<div class="highlight js-code-highlight">
+<pre class="highlight plaintext"><code>function checkUpkeep(bytes calldata)
+    external view override
+    returns (bool upkeepNeeded, bytes memory performData)
+{
+    uint256[] memory needsRebalance = new uint256[](positions.length);
+    uint256 count = 0;
+
+    for (uint256 i = 0; i &lt; positions.length; i++) {
+        if (_isDrifted(positions[i])) {
+            needsRebalance[count] = i;
+            count++;
+        }
+    }
+
+    if (count &gt; 0) {
+        upkeepNeeded = true;
+        performData = abi.encode(needsRebalance, count);
+    }
+}
+
+function performUpkeep(bytes calldata performData) external override {
+    require(msg.sender == forwarder, "Only forwarder");
+    (uint256[] memory indexes, uint256 count) =
+        abi.decode(performData, (uint256[], uint256));
+
+    for (uint256 i = 0; i &lt; count; i++) {
+        _rebalance(positions[indexes[i]]);
+    }
+}
+</code></pre>
+<div class="highlight__panel js-actions-panel">
+<div class="highlight__panel-action js-fullscreen-code-action">
+    <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" viewbox="0 0 24 24" class="highlight-action crayons-icon highlight-action--fullscreen-on"><title>Enter fullscreen mode</title>
+    <path d="M16 3h6v6h-2V5h-4V3zM2 3h6v2H4v4H2V3zm18 16v-4h2v6h-6v-2h4zM4 19h4v2H2v-6h2v4z"></path>
+</svg>
+
+    <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" viewbox="0 0 24 24" class="highlight-action crayons-icon highlight-action--fullscreen-off"><title>Exit fullscreen mode</title>
+    <path d="M18 7h4v2h-6V3h2v4zM8 9H2V7h4V3h2v6zm10 8v4h-2v-6h6v2h-4zM8 15v6H6v-4H2v-2h6z"></path>
+</svg>
+
+</div>
+</div>
+</div>
+
+
+
+<p><code>checkUpkeep</code> loops over potentially hundreds of positions, doing all the math off-chain at zero gas cost. It encodes exactly which positions need work and passes that as <code>performData</code>. <code>performUpkeep</code> receives that pre-computed list and only touches the positions already identified as drifted, no wasted computation on-chain, no looping through the full array at gas cost.</p>
+
+<p>This pattern is what separates "Automation as a cron job" from Automation as actual verifiable off-chain compute.</p>
+
+<p>Chainlink Automation is not a bot that calls your function. It's an OCR3-based oracle network that reaches cryptographically verified consensus on whether your condition is true, signs a report proving that consensus, and only then delivers the call to your contract. Design <code>checkUpkeep</code> to do the heavy lifting off-chain for free, design <code>performUpkeep</code> to be gated, idempotent, and gas-bounded, and monitor your LINK balance like you monitor any other critical infrastructure.</p>
+
+
+<hr>
+
+<p><em>I'm a smart contract security researcher writing through Chainlink's full architecture for 28 days. Follow along at <a href="https://www.ramprasadgoud.dev/#writing" target="_blank" rel="noopener noreferrer">ramprasadgoud.dev</a> or on X <a href="https://x.com/0xramprasad" target="_blank" rel="noopener noreferrer">@0xramprasad</a>.</em></p>
+
+
+</body>
+</html>

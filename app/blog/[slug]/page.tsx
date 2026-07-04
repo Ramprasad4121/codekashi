@@ -1,9 +1,16 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import ArticleFooter from '@/components/article-footer';
 import AutoResizingIframe from '@/components/auto-resizing-iframe';
 
 const postsMap: Record<string, string> = {
+  "chainlink-automation-isnt-a-cron-job-its-a-consensus-decision-4986": "/writings/chainlink-automation-isnt-a-cron-job-its-a-consensus-decision-4986.html",
+  "why-blocktimestamp-is-an-nft-mint-exploit-waiting-to-happen-and-what-vrf-actually-does-instead-4en9": "/writings/why-blocktimestamp-is-an-nft-mint-exploit-waiting-to-happen-and-what-vrf-actually-does-instead-4en9.html",
+  "chainlinks-foundation-layer-explained-for-smart-contract-auditors-51g1": "/writings/chainlinks-foundation-layer-explained-for-smart-contract-auditors-51g1.html",
+  "the-latestrounddata-footgun-that-drained-two-defi-protocols-for-195m-581f": "/writings/the-latestrounddata-footgun-that-drained-two-defi-protocols-for-195m-581f.html",
+  "reading-the-ocr-protocol-so-you-dont-have-to-but-you-should-anyway-3a1c": "/writings/reading-the-ocr-protocol-so-you-dont-have-to-but-you-should-anyway-3a1c.html",
+  "dons-are-not-multisigs-the-architecture-difference-that-actually-matters-for-security-2ml5": "/writings/dons-are-not-multisigs-the-architecture-difference-that-actually-matters-for-security-2ml5.html",
+  "before-ocr-how-chainlink-used-to-work-and-why-it-had-to-change-275a": "/writings/before-ocr-how-chainlink-used-to-work-and-why-it-had-to-change-275a.html",
+  "the-oracle-problem-isnt-about-data-its-about-trust-minimization-jap": "/writings/the-oracle-problem-isnt-about-data-its-about-trust-minimization-jap.html",
   "step-finance-incident": "https://docs.google.com/document/d/1RWfatb-H2O0kiwTdE5_nvcPcwhsP4LQFWLkirliiSiM/preview",
   "proof-of-stake-vs-proof-of-work": "/writings/proof-of-stake-vs-proof-of-work.html",
   "trail-of-bits-raising-the-standard": "/writings/trail-of-bits-raising-the-standard.html",
@@ -25,8 +32,8 @@ export default function BlogSlugPage({ params }: { params: { slug: string } }) {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#000000] text-zinc-200 font-sans">
-      <header className="flex items-center justify-between px-6 py-4 border-b border-zinc-900/50 bg-[#000000] sticky top-0 z-10">
+    <div className="flex flex-col h-screen bg-[#000000] text-zinc-200 font-sans overflow-hidden">
+      <header className="flex items-center justify-between px-6 h-14 border-b border-zinc-900/50 bg-[#000000] shrink-0">
         <div className="flex items-center gap-4">
           <Link href="/#writing" className="text-zinc-500 hover:text-white transition-colors flex items-center gap-2 text-sm font-mono uppercase tracking-widest">
             <span>←</span> Back to Home
@@ -36,9 +43,8 @@ export default function BlogSlugPage({ params }: { params: { slug: string } }) {
           {params.slug.replace(/-/g, ' ')}
         </div>
       </header>
-      <main className="flex flex-col w-full bg-zinc-950 flex-1">
+      <main className="flex flex-col w-full bg-zinc-950 flex-1 overflow-hidden">
         <AutoResizingIframe url={url} title={`${params.slug} Article`} />
-        <ArticleFooter key={params.slug} slug={params.slug} />
       </main>
     </div>
   );

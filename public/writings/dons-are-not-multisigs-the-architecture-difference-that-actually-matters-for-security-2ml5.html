@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DONs Are Not Multisigs - The Architecture Difference That Actually Matters for Security</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      line-height: 1.8;
+      color: #e4e4e7;
+      background-color: #09090b;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+      font-size: 1.1rem;
+    }
+    h1, h2, h3, h4 { color: #ffffff; margin-top: 2rem; margin-bottom: 1rem; }
+    h1 { font-size: 2.25rem; font-weight: 700; line-height: 1.2; }
+    h2 { font-size: 1.8rem; }
+    h3 { font-size: 1.5rem; }
+    a { color: #60a5fa; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    p { margin-bottom: 1.5rem; }
+    img { max-width: 100%; height: auto; border-radius: 0.5rem; margin: 2rem 0; }
+    pre { background: #18181b; padding: 1.5rem; border-radius: 0.5rem; overflow-x: auto; font-family: monospace; }
+    code { background: #18181b; padding: 0.2rem 0.4rem; border-radius: 0.25rem; font-family: monospace; font-size: 0.9em; }
+    blockquote { border-left: 4px solid #3f3f46; margin: 0; padding-left: 1rem; color: #a1a1aa; font-style: italic; }
+    figure { margin: 2rem 0; }
+    figcaption { text-align: center; color: #a1a1aa; font-size: 0.9rem; margin-top: 0.5rem; }
+  </style>
+</head>
+<body>
+  <h1>DONs Are Not Multisigs - The Architecture Difference That Actually Matters for Security</h1>
+  <h2>
+  <a name="a-real-116-million-reason-to-care-about-this-distinction" href="#a-real-116-million-reason-to-care-about-this-distinction">
+  </a>
+  A real $116 million reason to care about this distinction
+</h2>
+
+<p>In October 2022, Avraham Eisenberg pumped the price of MNGO across the handful of exchanges feeding Mango Markets' oracle, then borrowed roughly $110 million against the inflated paper value. The contract code wasn't buggy. The price it trusted was thin enough for one well-funded trader to move directly.</p>
+
+<p>That single incident is the cleanest real-world argument for why "decentralized oracle network" can't just mean "more than one address agreeing on something." A 3-of-5 multisig is also more than one address agreeing on something, and it would have done nothing to stop Mango. The architecture underneath a DON has to do real work, not just add signatures.</p>
+
+<p>This distinction matters beyond the theory. If you're auditing smart contracts, reviewing an integration, or just trying to evaluate whether a protocol's price feed is actually safe, "it uses a decentralized oracle" is not an answer. It's a claim that needs checking. Plenty of protocols that called themselves decentralized in 2021 and 2022 turned out to be running the equivalent of a multisig with extra branding, and several of them got drained because of it.</p>
+
+<p>This is day 3 of a 28-day series going through Chainlink's full architecture. Today: what actually makes a Decentralized Oracle Network structurally different from a multisig, why that difference is exactly what an auditor should be checking for, and where multisigs genuinely do show up in Chainlink's own design, just not where most people assume.</p>
+
+<h2>
+  <a name="why-more-signatures-isnt-the-same-as-more-security" href="#why-more-signatures-isnt-the-same-as-more-security">
+  </a>
+  Why "more signatures" isn't the same as "more security"
+</h2>
+
+<p>A multisig is a coordination tool. A fixed set of known signers each hold a key, and a transaction executes once enough of them approve it. That's useful for treasury management and contract upgrades, where you genuinely want a small, accountable group making a deliberate decision. It is not, on its own, an oracle, and it was never designed to be one.</p>
+
+<p>Here's the gap: a multisig says nothing about where the data being signed came from. If five signers all pull their number from the same single API, you have five signatures and one source. Compromise that one source (or just have it go down, or have it be wrong) and all five signers happily approve the same bad number, because from their point of view, nothing looks wrong. The multisig adds friction to <em>changing</em> the data once it's recorded. It adds nothing to <em>verifying</em> the data was right in the first place. Those are not the same job, even though they look similar on a block explorer.</p>
+
+<p><strong>This is the actual distinction:</strong></p>
+
+<ul>
+<li>A multisig verifies that <em>enough people agreed</em> to do something</li>
+<li>A DON verifies that <em>enough independent sources, fetched independently, by independent operators</em> arrived at the same answer</li>
+</ul>
+
+<p>Those are different security properties, and only one of them resists the Mango-style attack. A multisig with the best possible signers in the world still inherits whatever data those signers were looking at. If that data was manipulable, more signatures on top of it changes nothing about the underlying vulnerability.</p>
+
+<h2>
+  <a name="the-three-layers-a-chainlink-price-feed-actually-runs-through" href="#the-three-layers-a-chainlink-price-feed-actually-runs-through">
+  </a>
+  The three layers a Chainlink Price Feed actually runs through
+</h2>
+
+<p>Here's where it gets concrete. A Chainlink Data Feed doesn't just have "many nodes." It has three separate, stacked layers of independence, and an attacker has to break all three simultaneously to move the final number.</p>
+
+<h3>
+  <a name="layer-1-data-source-aggregators" href="#layer-1-data-source-aggregators">
+  </a>
+  Layer 1: Data source aggregators
+</h3>
+
+<p>Raw price data starts at centralized exchanges (Coinbase, Binance) and decentralized exchange protocols (Uniswap). Premium data aggregators then pull from across all of these, weighting by volume and liquidity, filtering fake exchange volume, and removing outliers, before a Chainlink node ever sees a number.</p>
+
+<p><strong>This layer alone already defeats a huge class of naive attacks</strong>, like the Mango exploit, where the whole problem was a single thin venue standing in as "the price."</p>
+
+<h3>
+  <a name="layer-2-pernode-median" href="#layer-2-pernode-median">
+  </a>
+  Layer 2: Per-node median
+</h3>
+
+<p>Each individual node operator doesn't just pick one aggregator and trust it. Node operators source price data from multiple independent data aggregators and take the median between them, which protects against any single aggregator having downtime or a bad data point.</p>
+
+<h3>
+  <a name="layer-3-donwide-median" href="#layer-3-donwide-median">
+  </a>
+  Layer 3: DON-wide median
+</h3>
+
+<p>A typical ETH/USD feed runs with around 21 independent node operators, each running separate infrastructure, querying separate data providers. Each node submits its own answer, and an aggregation contract discards statistical outliers and computes the median across all of them.</p>
+
+<p><strong>The math that matters:</strong> a single bad actor submitting a wildly wrong number barely moves the final median if 20 other nodes report correctly. To meaningfully move the feed, an attacker needs to compromise a real fraction of independent operators, running independent infrastructure, pulling from independent sources, all at the same time.</p>
+
+<h2>
+  <a name="where-multisigs-actually-do-show-up-in-chainlinks-architecture" href="#where-multisigs-actually-do-show-up-in-chainlinks-architecture">
+  </a>
+  Where multisigs actually do show up in Chainlink's architecture
+</h2>
+
+<p>Here's the nuance worth getting right, because it's easy to overstate this comparison. Multisigs aren't absent from Chainlink's design. They show up at a different layer entirely: governance, not consensus.</p>
+
+<p>Two concrete places:</p>
+
+<ol>
+<li><p><strong>Onchain parameter updates.</strong> When a feed needs a faulty node replaced, or a new feature like OCR rolled out, that change goes through a multisig-coordinated process. This is slow and deliberate on purpose, balancing collusion-resistance against the flexibility to actually fix things.</p></li>
+<li><p><strong>Operator contract ownership.</strong> Forwarder contracts (the contracts that let a node operator manage multiple wallets) distinguish between an owner account, typically secured by a hardware wallet or multisig, and authorized sender accounts, which are the hot wallets nodes actually use day to day to sign fulfillment transactions. If a node's hot wallet gets compromised, the owner address (the multisig) is what revokes it from the authorized senders list.</p></li>
+</ol>
+
+<p>So the accurate version of this distinction isn't "Chainlink doesn't use multisigs." It's: the multisig protects the keys that govern the system. The three-layer median protects the data the system reports. Conflating those two is exactly the kind of detail that separates a careful audit from a surface-level one.</p>
+
+<h2>
+  <a name="a-worked-example-what-it-actually-takes-to-move-a-feed" href="#a-worked-example-what-it-actually-takes-to-move-a-feed">
+  </a>
+  A worked example: what it actually takes to move a feed
+</h2>
+
+<p>Numbers make this concrete. Say a feed runs 21 node operators, and the aggregation contract takes the median of all submissions, discarding clear outliers first.</p>
+
+<p>To meaningfully shift that median, an attacker doesn't need to compromise one node. They need to compromise enough nodes that their manipulated values stop looking like outliers and start dragging the actual middle of the distribution. With 21 independent operators, that's a real fraction of the network, not one server, not one signer, not one thin market.</p>
+
+<p>Now compare that to the Mango setup: one effective price source, manipulable by anyone with enough capital to move that specific market for a few minutes. The attacker didn't need to compromise 11 of 21 independent operators. They needed to move one venue. That's the entire difference in a sentence: a real DON forces an attacker to defeat a distribution, not a destination.</p>
+
+<p>This is also why per-node and per-source independence both matter, not just node count. Twenty-one nodes that all pull from the same single underlying aggregator are not meaningfully more decentralized than one node, because compromising that one shared upstream source compromises all twenty-one simultaneously. The number of nodes is the headline. The independence of what feeds each node is the part that actually does the security work.</p>
+
+<h2>
+  <a name="a-checklist-for-anything-youre-reviewing-that-consumes-price-data" href="#a-checklist-for-anything-youre-reviewing-that-consumes-price-data">
+  </a>
+  A checklist for anything you're reviewing that consumes price data
+</h2>
+
+<p>If you're auditing a contract that reads from any oracle, Chainlink or otherwise, here's what's actually worth checking:</p>
+
+<ol>
+<li>
+<strong>How many independent node operators back this feed, and how many independent data sources feed each one?</strong> A "DON" with 3 nodes all pulling from the same aggregator is architecturally closer to a multisig than a real decentralized feed.</li>
+<li>
+<strong>Is the aggregation a median, or something else?</strong> Median is resistant to a single bad submission. A naive average is not, one wildly wrong number can drag a mean significantly.</li>
+<li>
+<strong>Does the consuming contract check <code>updatedAt</code>, or just trust whatever <code>latestRoundData()</code> returns?</strong> A perfectly decentralized feed that goes stale and gets read anyway is still an exploitable bug, just a different one than Mango's.</li>
+<li>
+<strong>Where does governance sit?</strong> If a multisig can swap out the entire node set or change the aggregation logic with no time delay, that multisig is now your actual trust assumption, separate from whatever the DON itself guarantees day to day.</li>
+</ol>
+
+<p><strong>The takeaway:</strong> decentralization isn't a label, it's a measurable property of how many genuinely independent failure points an attacker has to compromise at once. A DON earns that label through three stacked layers of independent sourcing and median aggregation. A multisig, no matter how many signers it has, never claims to do that job, and shouldn't be evaluated as if it does.</p>
+
+
+<hr>
+
+<p><em>I'm a smart contract security researcher writing through Chainlink's full architecture, from the node layer up to the Chainlink Runtime Environment. Follow along at <a href="https://www.ramprasadgoud.dev/#writing" target="_blank" rel="noopener noreferrer">ramprasadgoud.dev</a> or on X <a href="https://x.com/0xramprasad" target="_blank" rel="noopener noreferrer">@0xramprasad</a>.</em></p>
+
+
+</body>
+</html>
