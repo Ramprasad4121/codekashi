@@ -71,20 +71,12 @@ export default function About() {
               transition={{ duration: 0.6, delay: 0.2 }}
             >
               <h2 className="text-white text-xl sm:text-2xl font-medium mb-8 tracking-tight">
-                Smart Contract Security Researcher / Rust Systems Engineer
+                Smart Contract Security Researcher
               </h2>
               
-              <div className="space-y-6 text-base sm:text-lg leading-[1.8] text-zinc-400">
+              <div className="space-y-6 text-base sm:text-lg leading-[1.8] text-zinc-400 text-justify">
                 <p>
-                  I work on <span className="text-zinc-200">smart contract security</span> and <span className="text-zinc-200">Rust systems engineering</span>.
-                  Before that, I built my foundation through seven independent protocol audits, 
-                  the RektOff × Solana Foundation security bootcamp.
-                </p>
-                <p>
-                  I got into this through low-level systems programming and a stubborn interest 
-                  in how things break. I still care most about building tools that make 
-                  complex protocols harder to exploit. When I&apos;m not auditing contracts, 
-                  I&apos;m writing about what I found.
+                  I&apos;m a certified smart contract security researcher by RektOff x Solana Foundation and computer science graduate (2022–2026) working as a smart contract security researcher and Rust/Solidity engineer across EVM and Solana, and a Chainlink Community Enthusiast. So far I have done seven private audits, including a Critical fake-oracle vulnerability in a Solana lending protocol, and I hold a certification from the RektOff × Solana Foundation Rust Security Bootcamp. Right now I&apos;m auditing the chainlink-evm repo and building ARGUS, an open-source multi-agent platform that runs the full smart contract audit lifecycle, because I think security tooling needs to be as good as the attackers it&apos;s up against. I care about staying at the intersection of security and AI agent development rather than picking one and leaving the other behind.
                 </p>
               </div>
             </motion.div>

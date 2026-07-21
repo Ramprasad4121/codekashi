@@ -36,7 +36,7 @@ export default function Audits() {
           <div className="flex items-center mb-12">
              <div className="flex items-center gap-4 pr-6">
                <h2 className="text-white text-xl font-medium tracking-tight">
-                 Protocol Audits
+                 Protocol Audits (Public)
                </h2>
              </div>
              <div className="h-[1px] flex-1 bg-zinc-900/50" />
@@ -72,9 +72,7 @@ export default function Audits() {
 
           <div className="mt-12 flex justify-start sm:justify-end">
             <a
-              href="https://github.com/Ramprasad4121/Smart-Contract-Audit-Reports"
-              target="_blank"
-              rel="noopener noreferrer"
+              href="/audits"
               className="group inline-flex items-center gap-2 font-mono text-xs uppercase tracking-[0.2em] text-zinc-500 hover:text-white transition-colors"
             >
               <span className="underline decoration-zinc-800 underline-offset-4 group-hover:decoration-zinc-500 transition-colors">

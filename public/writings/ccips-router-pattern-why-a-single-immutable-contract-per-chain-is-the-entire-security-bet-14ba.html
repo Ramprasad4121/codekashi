@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CCIP's Router Pattern: Why a Single Immutable Contract Per Chain Is the Entire Security Bet</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      line-height: 1.8;
+      color: #e4e4e7;
+      background-color: #09090b;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+      font-size: 1.1rem;
+    }
+    h1, h2, h3, h4 { color: #ffffff; margin-top: 2rem; margin-bottom: 1rem; }
+    h1 { font-size: 2.25rem; font-weight: 700; line-height: 1.2; }
+    h2 { font-size: 1.8rem; }
+    h3 { font-size: 1.5rem; }
+    a { color: #60a5fa; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    p { margin-bottom: 1.5rem; }
+    img { max-width: 100%; height: auto; border-radius: 0.5rem; margin: 2rem 0; }
+    pre { background: #18181b; padding: 1.5rem; border-radius: 0.5rem; overflow-x: auto; font-family: monospace; }
+    code { background: #18181b; padding: 0.2rem 0.4rem; border-radius: 0.25rem; font-family: monospace; font-size: 0.9em; }
+    blockquote { border-left: 4px solid #3f3f46; margin: 0; padding-left: 1rem; color: #a1a1aa; font-style: italic; }
+    figure { margin: 2rem 0; }
+    figcaption { text-align: center; color: #a1a1aa; font-size: 0.9rem; margin-top: 0.5rem; }
+  </style>
+</head>
+<body>
+  <h1>CCIP's Router Pattern: Why a Single Immutable Contract Per Chain Is the Entire Security Bet</h1>
+  <h2>
+  <a name="why-crosschain-bridges-keep-getting-drained" href="#why-crosschain-bridges-keep-getting-drained">
+  </a>
+  Why cross-chain bridges keep getting drained
+</h2>
+
+<p>Between 2021 and 2023, cross-chain bridges lost over $2.5 billion to exploits. Not because the blockchain technology was wrong. Because the trust models were. Most bridge architectures concentrate trust in one or two contracts that, if compromised, hand an attacker complete control over both the source and destination sides of every transfer in flight.</p>
+
+<p>The Ronin Bridge ($625M, March 2022) was drained when an attacker compromised 5 of 9 validator private keys, signed fraudulent withdrawal transactions, and extracted funds before anyone noticed. The Wormhole exploit ($320M, February 2022) exploited a signature verification bug that let an attacker fake guardian approvals. In both cases, the single layer of trust wasn't enough.</p>
+
+<p>This is day 12 of the 28-day Chainlink architecture series and the start of Week 3, the CCIP deep dive. Today covers the onchain architecture specifically: the Router, OnRamp, OffRamp, Token Pools, Fee Quoter, Token Admin Registry, and RMN Contract. The offchain components (the Role DON, Committing and Executing OCR plugins, and the Risk Management Network) come tomorrow. Understanding the onchain layer first is the right sequence because the contracts define the security surface, and every audit starts with the contracts.</p>
+
+<h2>
+  <a name="the-router-one-per-chain-immutable-the-only-stable-address" href="#the-router-one-per-chain-immutable-the-only-stable-address">
+  </a>
+  The Router: one per chain, immutable, the only stable address
+</h2>
+
+<p>The Router is the single user-facing entry point for CCIP on each blockchain. One Router contract per chain. Users and dApps call <code>Router.getFee()</code> to estimate costs and <code>Router.ccipSend()</code> to dispatch a cross-chain message or token transfer. The Router is the contract you can hardcode. Everything else in the CCIP contract set is internal, can upgrade, and should be derived from the Router rather than assumed to be at a fixed address.</p>
+
+<p>This design is a deliberate architectural security decision. The Router is immutable. If Chainlink needs to upgrade the OnRamp or OffRamp to add features, fix bugs, or respond to a security finding, it can do so without changing the address that every integration, every UI, and every contract in the ecosystem has bookmarked. From the user's perspective, nothing changes. From the internal architecture's perspective, the underlying implementation can evolve.</p>
+
+<p>The Router validates that the destination chain exists in its routing table before passing anything to an OnRamp. It also checks whether the destination chain is cursed (more on that below) before processing the message. These checks happen before any fees are taken or any state is modified.</p>
+
+<h2>
+  <a name="the-onramp-sourcechain-processing-per-lane" href="#the-onramp-sourcechain-processing-per-lane">
+  </a>
+  The OnRamp: source-chain processing, per lane
+</h2>
+
+<p>Each lane (unidirectional path between two chains) has its own OnRamp contract on the source chain. When the Router forwards a <code>ccipSend</code> call, the OnRamp takes over:</p>
+
+<p><strong>Fee collection</strong>: the OnRamp calls the Fee Quoter to get the precise fee for this specific message (size, token count, destination gas limit, current gas prices, and current LINK/ETH price all factor in). The calculated fee is collected from the sender in the specified fee token.</p>
+
+<p><strong>Message validation</strong>: the OnRamp checks parameters including the number of tokens in the message (currently capped at 10 tokens per message), the gas limit for the callback on the destination chain, and the data payload length.</p>
+
+<p><strong>Curse check</strong>: the OnRamp calls <code>isCursed()</code> on the RMN Contract to verify the destination chain is not currently flagged as compromised or under active monitoring. If the destination is cursed, the transfer is rejected at this point.</p>
+
+<p><strong>Token handling</strong>: if the message includes tokens, the OnRamp interacts with the Token Pool for each included token, calling <code>lockOrBurn</code>. The specific mechanism (lock vs burn) depends on how the token pool is configured for that token.</p>
+
+<p><strong>Message dispatch</strong>: after all validations pass, the OnRamp assigns a sequence number to the message, generates a unique message ID, and emits a <code>CCIPMessageSent</code> event. This event is what the offchain Committing DON monitors.</p>
+
+<p>One important implementation detail: the OnRamp address can change when CCIP ships product updates. Integrating contracts should never hardcode the OnRamp address. They should derive it from the Router. The Router always knows the current OnRamp for each lane.</p>
+
+<h2>
+  <a name="the-offramp-destinationchain-processing-per-lane" href="#the-offramp-destinationchain-processing-per-lane">
+  </a>
+  The OffRamp: destination-chain processing, per lane
+</h2>
+
+<p>The OffRamp is the destination-chain counterpart. It's an internal contract that only the CCIP DONs can call to process incoming messages. Two distinct phases happen at the OffRamp.</p>
+
+<p><strong>Commit phase</strong>: the Committing DON calls <code>commit()</code> on the OffRamp with a Commit Report containing a Merkle root of a batch of messages from the source chain, along with price update data. The OffRamp stores this Merkle root. It emits a <code>CommitReportAccepted</code> event. The OffRamp does not execute anything at this stage. It just records that a DON has attested to this Merkle root being valid.</p>
+
+<p><strong>Execution phase</strong>: the Executing DON (or a manual executor in fallback scenarios) provides a Merkle proof for a specific message against a stored root. The OffRamp validates the proof, checks the source chain is not cursed, checks message-level rate limits, and if everything passes, executes:</p>
+
+<ul>
+<li>For token transfers: the OffRamp retrieves the relevant Token Pool from the Token Admin Registry and calls <code>releaseOrMint</code>. Tokens are released (if lock-and-release) or minted (if burn-and-mint) to the specified receiver.</li>
+<li>For messages with data: the OffRamp calls the Router to deliver the arbitrary bytes payload to the receiver contract's <code>ccipReceive</code> function.</li>
+</ul>
+
+<p>The OffRamp emits <code>ExecutionStateChanged</code> with a final status of either Success or Failure. If execution fails (due to insufficient gas limit in the receiver's callback or a logic error in the receiver contract), the message doesn't disappear. It remains available for permissionless manual execution after a configured time delay. This fallback path ensures message delivery is guaranteed as long as someone eventually triggers execution with sufficient gas.</p>
+
+<p>Like the OnRamp, the OffRamp address can change. Always derive it from the Router.</p>
+
+<h2>
+  <a name="the-lane-the-unit-of-configuration" href="#the-lane-the-unit-of-configuration">
+  </a>
+  The Lane: the unit of configuration
+</h2>
+
+<p>A Lane is the conceptual unidirectional path between two chains. Ethereum to Arbitrum is one lane. Arbitrum to Ethereum is a different lane. They're configured independently. This matters more than it sounds.</p>
+
+<p>Each lane has its own settings for:</p>
+
+<ul>
+<li>How many source-chain block confirmations to wait before the Committing DON posts a Merkle root (Ethereum mainnet sources typically use 64 confirmations, roughly 13 minutes, for deep finality guarantees)</li>
+<li>Which tokens are supported</li>
+<li>Rate limits per token per direction</li>
+<li>Whether an allowlist restricts which senders can use the lane</li>
+</ul>
+
+<p>The independence of lane configuration is what lets institutional deployments tune their risk parameters specifically. A lane connecting a bank's private chain to Ethereum for high-value settlements can be configured with deeper finality requirements, more conservative rate limits, and a sender allowlist. A lane connecting two DeFi protocols for retail-scale token flows can be configured with lighter finality and higher throughput. Neither configuration affects the other.</p>
+
+<h2>
+  <a name="token-pools-and-rate-limits-the-capacity-bucket-model" href="#token-pools-and-rate-limits-the-capacity-bucket-model">
+  </a>
+  Token Pools and rate limits: the capacity bucket model
+</h2>
+
+<p>Each token has its own Token Pool on each chain. The OnRamp and OffRamp use the Token Admin Registry to look up which Token Pool handles a given token before calling lock/burn or release/mint. Token Pools are deployed by token developers and exist independently of the core CCIP contracts.</p>
+
+<p>Rate limits in Token Pools use a capacity bucket model: the pool has a maximum capacity and a refill rate. Transfers draw down capacity from the bucket. If insufficient capacity is available, the transfer is rejected until enough has refilled. Crucially, each token pool maintains two independent limits: an outbound rate limit (from this chain to a remote chain) and an inbound rate limit (from a remote chain into this chain). Inbound and outbound limits can differ in capacity and refill rate, allowing asymmetric risk tuning depending on the direction of value flow.</p>
+
+<p>Rate limits are configured per token per lane. Changing a rate limit affects only that specific token on that specific lane, not all CCIP traffic. Disabling rate limits entirely removes an important safety mechanism and should only be done deliberately.</p>
+
+<h2>
+  <a name="the-rmn-contract-and-the-curse-mechanism" href="#the-rmn-contract-and-the-curse-mechanism">
+  </a>
+  The RMN Contract and the curse mechanism
+</h2>
+
+<p>The RMN (Risk Management Network) Contract is deployed on every CCIP-enabled chain. It serves two functions that are both security-critical.</p>
+
+<p><strong>Curse detection</strong>: the Router, OnRamp, OffRamp, and Token Pool contracts all call <code>isCursed()</code> on the RMN Contract before processing transactions. If the chain is marked as cursed, all CCIP operations involving that chain halt. A curse can be initiated manually by the CCIP Owner if an active threat is detected, or propagated by the Risk Management Network's offchain nodes if they detect anomalies in the Merkle roots being committed. The curse mechanism is the emergency brake, and it operates across the entire stack: the source chain's OnRamp won't dispatch, and the destination chain's OffRamp won't execute, while a curse is active.</p>
+
+<p><strong>Upgrade control</strong>: all security-critical configuration changes and infrastructure upgrades for CCIP pass through a Role-based Access Control Timelock contract. This provides a review period during which CCIP node operators can veto an upgrade, or in time-sensitive situations, explicitly approve it before the timelock expires. This prevents a compromised governance key from instantly pushing a malicious upgrade through.</p>
+
+<h2>
+  <a name="audit-checklist-for-any-ccip-integration" href="#audit-checklist-for-any-ccip-integration">
+  </a>
+  Audit checklist for any CCIP integration
+</h2>
+
+<p><strong>1. Is <code>ccipReceive</code> access-controlled?</strong><br>
+The most common CCIP integration mistake: a receiver contract that doesn't verify the caller is the legitimate Router. Any address can call <code>ccipReceive</code> on an unprotected contract and inject arbitrary data.<br>
+</p>
+
+<div class="highlight js-code-highlight">
+<pre class="highlight plaintext"><code>function ccipReceive(Client.Any2EVMMessage memory message) 
+    external override onlyRouter {
+    // onlyRouter modifier checks msg.sender == i_router
+}
+</code></pre>
+<div class="highlight__panel js-actions-panel">
+<div class="highlight__panel-action js-fullscreen-code-action">
+    <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" viewbox="0 0 24 24" class="highlight-action crayons-icon highlight-action--fullscreen-on"><title>Enter fullscreen mode</title>
+    <path d="M16 3h6v6h-2V5h-4V3zM2 3h6v2H4v4H2V3zm18 16v-4h2v6h-6v-2h4zM4 19h4v2H2v-6h2v4z"></path>
+</svg>
+
+    <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" viewbox="0 0 24 24" class="highlight-action crayons-icon highlight-action--fullscreen-off"><title>Exit fullscreen mode</title>
+    <path d="M18 7h4v2h-6V3h2v4zM8 9H2V7h4V3h2v6zm10 8v4h-2v-6h6v2h-4zM8 15v6H6v-4H2v-2h6z"></path>
+</svg>
+
+</div>
+</div>
+</div>
+
+
+
+<p><strong>2. Are OnRamp and OffRamp addresses derived from the Router, not hardcoded?</strong><br>
+Both can change with product updates. A contract that hardcodes an OnRamp or OffRamp address will silently break after an upgrade.</p>
+
+<p><strong>3. Is the gas limit set high enough for <code>ccipReceive</code>?</strong><br>
+The gas limit for the destination callback is set at the source chain when <code>ccipSend</code> is called. If <code>ccipReceive</code> runs out of gas, execution fails and the message sits in a failed state until manually re-executed. Profile the receiver's gas consumption before setting this value.</p>
+
+<p><strong>4. Does <code>ccipReceive</code> handle failed execution gracefully?</strong><br>
+If the receiver logic reverts, the message can be manually re-executed permissionlessly. Make <code>ccipReceive</code> idempotent: check whether the message has already been processed before acting on it, so re-execution doesn't double-apply effects.</p>
+
+<p><strong>5. Is the message ID stored and checked?</strong><br>
+Track which message IDs have been processed. Even with permissionless manual execution, a receiver that processes the same message twice because it doesn't track IDs can produce unintended outcomes.</p>
+
+<p><strong>6. Are Token Pool rate limits appropriate for the volume and risk profile?</strong><br>
+Rate limits that are too high provide no protection during an exploit. Rate limits that are too low throttle legitimate volume. For each token on each lane your protocol uses, verify the outbound and inbound limits are explicitly configured and match the expected flow, not defaulted to off.</p>
+
+
+<hr>
+
+<p><em>I'm a smart contract security researcher writing through Chainlink's full architecture for 28 days. Follow along at <a href="https://www.ramprasadgoud.dev/#writing" target="_blank" rel="noopener noreferrer">ramprasadgoud.dev</a> or on X <a href="https://x.com/0xramprasad" target="_blank" rel="noopener noreferrer">@0xramprasad</a>.</em></p>
+
+
+</body>
+</html>

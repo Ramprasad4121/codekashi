@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Five Chainlink Products. One Architecture. The DON+OCR Pattern Underneath Everything.</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      line-height: 1.8;
+      color: #e4e4e7;
+      background-color: #09090b;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+      font-size: 1.1rem;
+    }
+    h1, h2, h3, h4 { color: #ffffff; margin-top: 2rem; margin-bottom: 1rem; }
+    h1 { font-size: 2.25rem; font-weight: 700; line-height: 1.2; }
+    h2 { font-size: 1.8rem; }
+    h3 { font-size: 1.5rem; }
+    a { color: #60a5fa; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    p { margin-bottom: 1.5rem; }
+    img { max-width: 100%; height: auto; border-radius: 0.5rem; margin: 2rem 0; }
+    pre { background: #18181b; padding: 1.5rem; border-radius: 0.5rem; overflow-x: auto; font-family: monospace; }
+    code { background: #18181b; padding: 0.2rem 0.4rem; border-radius: 0.25rem; font-family: monospace; font-size: 0.9em; }
+    blockquote { border-left: 4px solid #3f3f46; margin: 0; padding-left: 1rem; color: #a1a1aa; font-style: italic; }
+    figure { margin: 2rem 0; }
+    figcaption { text-align: center; color: #a1a1aa; font-size: 0.9rem; margin-top: 0.5rem; }
+  </style>
+</head>
+<body>
+  <h1>Five Chainlink Products. One Architecture. The DON+OCR Pattern Underneath Everything.</h1>
+  <h2>
+  <a name="the-shortcut-nobody-tells-you" href="#the-shortcut-nobody-tells-you">
+  </a>
+  The shortcut nobody tells you
+</h2>
+
+<p>When developers first encounter Chainlink, they learn the products one at a time. Data Feeds. Then VRF. Then Automation. Then Functions. Then CCIP. Each has its own docs page, its own interface, its own set of concepts to memorize. By the time you've read through all of them, it feels like you've learned five separate systems.</p>
+
+<p>You haven't. You've seen the same system five times wearing different clothes.</p>
+
+<p>Every Chainlink product, without exception, is built on the same two-layer skeleton: a Decentralized Oracle Network (the trust layer, independent nodes that can't easily collude) running the Offchain Reporting protocol (the coordination layer, how those nodes reach consensus off-chain and write a single attested result on-chain). Once you see that skeleton clearly, you stop learning products and start recognizing patterns. That shift is worth months of reading time.</p>
+
+<p>This is day 14 of the 28-day Chainlink architecture series. Days 8 through 13 covered Automation, Functions, VRF, Data Feeds, Proof of Reserve, Data Streams, Staking, and CCIP individually. Today pulls all of it together into the one mental model that should have come first.</p>
+
+<h2>
+  <a name="the-skeleton-stated-precisely" href="#the-skeleton-stated-precisely">
+  </a>
+  The skeleton, stated precisely
+</h2>
+
+<p>The DON+OCR pattern has three steps that repeat across every product:</p>
+
+<p><strong>Step 1 — Independent observation.</strong> Every node in the network makes its own observation of whatever the product is measuring: a price, a random number request, an upkeep condition, a JavaScript execution result, a Merkle root of cross-chain messages. Each node acts independently. No node sees another's observation before making its own.</p>
+
+<p><strong>Step 2 — Off-chain consensus.</strong> Nodes share their observations over a peer-to-peer network and run the OCR protocol to reach agreement. One signed report is assembled containing the aggregated result. A quorum of nodes must sign it. The computation is expensive. The consensus is cheap. The blockchain never sees the intermediate steps.</p>
+
+<p><strong>Step 3 — On-chain verification.</strong> One node submits the signed report to a smart contract. That contract verifies the quorum's signatures and exposes the result. The verification is what the blockchain actually does. Not the computation, not the consensus. Just the final check that enough independent signers agreed on this exact payload.</p>
+
+<p>Everything else about each product, the specific interface you call, the kind of result that gets delivered, the billing model, the callback pattern, is detail layered on top of that skeleton. The skeleton itself never changes.</p>
+
+<h2>
+  <a name="seeing-it-in-each-product" href="#seeing-it-in-each-product">
+  </a>
+  Seeing it in each product
+</h2>
+
+<p>Here is every product from the past seven days of this series, mapped to the same three steps:</p>
+
+<p><strong>Data Feeds</strong></p>
+
+<ul>
+<li>Observe: each node fetches the asset price from multiple independent data aggregators and computes its own median</li>
+<li>Consensus: OCR round produces one signed report containing the network's aggregated median</li>
+<li>Verify: the AccessControlledOffchainAggregator contract checks quorum signatures, exposes <code>latestRoundData()</code>
+</li>
+</ul>
+
+<p><strong>VRF</strong></p>
+
+<ul>
+<li>Observe: the VRF oracle node generates a random value and cryptographic proof using its pre-committed private key and finalized block data</li>
+<li>Consensus: in v2.5, the VRF Coordinator handles the proof verification; the observation and proof generation happen as a single atomic step per oracle</li>
+<li>Verify: the VRF Coordinator contract validates the cryptographic proof on-chain before delivering the random word to the consumer contract</li>
+</ul>
+
+<p><strong>Automation</strong></p>
+
+<ul>
+<li>Observe: every Automation node independently simulates <code>checkUpkeep</code> against its own view of the chain state</li>
+<li>Consensus: OCR3 round produces a signed report containing <code>performData</code> for eligible upkeeps</li>
+<li>Verify: the Registry contract validates the quorum signatures before calling <code>performUpkeep</code>
+</li>
+</ul>
+
+<p><strong>Functions</strong></p>
+
+<ul>
+<li>Observe: every DON node independently executes the JavaScript source code in its own isolated Deno sandbox and produces a return value</li>
+<li>Consensus: the DON runs OCR to aggregate all nodes' execution results (typically a median for numeric outputs)</li>
+<li>Verify: the FunctionsCoordinator contract validates the quorum signatures and the FunctionsRouter calls the consumer's <code>fulfillRequest</code> callback</li>
+</ul>
+
+<p><strong>Proof of Reserve</strong></p>
+
+<ul>
+<li>Observe: each node independently queries the custodian's reserve data (for off-chain collateral) or verifies the underlying chain directly (for on-chain collateral)</li>
+<li>Consensus: OCR round produces one signed report of the current reserve balance</li>
+<li>Verify: the same AccessControlledOffchainAggregator pattern as Data Feeds, exposing <code>latestRoundData()</code> with a reserve balance instead of a price</li>
+</ul>
+
+<p><strong>CCIP</strong></p>
+
+<ul>
+<li>Observe: the Committing DON nodes independently monitor the source chain for <code>CCIPMessageSent</code> events and build Merkle trees from batches of messages</li>
+<li>Consensus: OCR (Commit plugin) produces a signed Commit Report containing the Merkle root; separately, the Executing DON runs the Execute plugin to validate and prepare execution</li>
+<li>Verify: the OffRamp contract validates the quorum signatures on the Commit Report before accepting the Merkle root; separately verifies Merkle proofs before executing each individual message</li>
+</ul>
+
+<h2>
+  <a name="what-changes-between-products-and-what-doesnt" href="#what-changes-between-products-and-what-doesnt">
+  </a>
+  What changes between products, and what doesn't
+</h2>
+
+<p>The three-step skeleton is constant. What varies is the answer to three questions:</p>
+
+<p><strong>What is being observed?</strong> A price. A random number. An upkeep condition. A JavaScript execution result. A reserve balance. A cross-chain message batch. The observation layer is where each product diverges.</p>
+
+<p><strong>What OCR version runs the consensus?</strong> Data Feeds and VRF use OCR2. Automation uses OCR3 (lower latency, batching support). CCIP runs two separate OCR plugins (Commit and Execute) on the same Role DON. Functions uses OCR2. The version choice reflects the latency and throughput requirements of each product, not a fundamental difference in the consensus model.</p>
+
+<p><strong>What does the on-chain contract do with the result?</strong> Data Feeds expose a price. VRF Coordinator validates a cryptographic proof and delivers randomness. The Registry executes a keeper job. FunctionsCoordinator routes the result to a callback. The OffRamp stores a Merkle root or executes a message. Each product's on-chain contract is essentially a specialized consumer of the same OCR-attested report format.</p>
+
+<h2>
+  <a name="why-this-matters-for-audits-specifically" href="#why-this-matters-for-audits-specifically">
+  </a>
+  Why this matters for audits specifically
+</h2>
+
+<p>If you're reviewing contracts that integrate Chainlink, the DON+OCR mental model gives you one consistent set of questions that applies across every product, not five separate mental models to switch between.</p>
+
+<p><strong>Trust boundary question (applies everywhere):</strong> what address is the consumer contract trusting to call it, and does that match the legitimate address derived from the product's architecture? A <code>ccipReceive</code> function that doesn't verify <code>msg.sender == router</code>, a VRF callback that doesn't check <code>msg.sender == vrfCoordinator</code>, an Automation <code>performUpkeep</code> that doesn't check <code>msg.sender == forwarder</code>. All three share are the same vulnerability class. Unverified caller on the trusted callback. The surface is different each time. The root cause is identical.</p>
+
+<p><strong>Report verification question (applies everywhere):</strong> is on-chain signature verification actually happening before the result is consumed? The aggregator checks quorum signatures before exposing <code>latestAnswer</code>. The Registry checks them before calling <code>performUpkeep</code>. The FunctionsCoordinator checks them before triggering <code>fulfillRequest</code>. The OffRamp checks them before storing a Merkle root. In a custom or forked integration, this verification might be missing or weakened. The question is always the same: does the on-chain contract verify that enough independent signers agreed on this exact payload before acting on it?</p>
+
+<p><strong>Staleness question (applies everywhere):</strong> how old is the last attested result, and does the consumer contract check that before using it? This shows up most obviously in Data Feeds (the <code>updatedAt</code> check from Day 5) and Proof of Reserve, but the principle applies to Automation (what if the DON stopped simulating upkeeps?), Functions (what if a request was never fulfilled?), and CCIP (what if a message sat pending because execution failed?). The specific field name and threshold differ. The failure mode is the same.</p>
+
+<h2>
+  <a name="the-evolution-from-don-to-cre" href="#the-evolution-from-don-to-cre">
+  </a>
+  The evolution: from DON to CRE
+</h2>
+
+<p>The DON+OCR pattern that underlies every product today is itself evolving. The Chainlink Runtime Environment (CRE) is changing how capabilities are organized: instead of one monolithic DON doing everything for one service, individual capabilities run on dedicated DONs and compose into workflows. A pricing capability DON, a computation capability DON, a cross-chain messaging capability DON, all orchestrated together rather than bundled into one.</p>
+
+<p>The three-step skeleton stays the same in CRE. What changes is the granularity: instead of "one DON handles all of Automation," each atomic capability of Automation becomes its own DON-backed service that can be reused across other workflows. The mental model you just built doesn't break under CRE. It scales.</p>
+
+<p>Days 22 through 24 in this series go deep on CRE specifically. The foundation you have now is exactly what makes that section make sense.</p>
+
+<h2>
+  <a name="the-onesentence-version-to-carry-forward" href="#the-onesentence-version-to-carry-forward">
+  </a>
+  The one-sentence version to carry forward
+</h2>
+
+<p>Every Chainlink product is independent nodes observing something, OCR reaching consensus off-chain, one signed report verified on-chain. The observation changes. The consensus protocol version changes. The on-chain consumer changes. The skeleton never does.</p>
+
+<p>If you're studying for a technical interview, building an integration, or doing an audit review, start every Chainlink-related question with that skeleton. The answer to almost every "how does X work?" question in Chainlink is "the same three steps, with X as the observation."</p>
+
+
+<hr>
+
+<p><em>I'm a smart contract security researcher writing through Chainlink's full architecture for 28 days. Follow along at <a href="https://www.ramprasadgoud.dev/#writing" target="_blank" rel="noopener noreferrer">ramprasadgoud.dev</a> or on X <a href="https://x.com/0xramprasad" target="_blank" rel="noopener noreferrer">@0xramprasad</a>.</em></p>
+
+
+</body>
+</html>

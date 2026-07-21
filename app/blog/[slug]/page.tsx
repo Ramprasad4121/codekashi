@@ -3,6 +3,12 @@ import { notFound } from 'next/navigation';
 import AutoResizingIframe from '@/components/auto-resizing-iframe';
 
 const postsMap: Record<string, string> = {
+  "five-chainlink-products-one-architecture-the-donocr-pattern-underneath-everything-597a": "/writings/five-chainlink-products-one-architecture-the-donocr-pattern-underneath-everything-597a.html",
+  "i-asked-in-a-chainlink-discord-is-chainlink-building-any-ai-the-answer-sent-me-down-a-rabbit-5b7j": "/writings/i-asked-in-a-chainlink-discord-is-chainlink-building-any-ai-the-answer-sent-me-down-a-rabbit-5b7j.html",
+  "ccips-router-pattern-why-a-single-immutable-contract-per-chain-is-the-entire-security-bet-14ba": "/writings/ccips-router-pattern-why-a-single-immutable-contract-per-chain-is-the-entire-security-bet-14ba.html",
+  "chainlink-staking-isnt-a-yield-farm-its-cryptoeconomic-security-with-real-consequences-41m2": "/writings/chainlink-staking-isnt-a-yield-farm-its-cryptoeconomic-security-with-real-consequences-41m2.html",
+  "terrausd-collapsed-with-18b-in-circulation-chainlink-proof-of-reserve-would-have-caught-it-earlier-4n3j": "/writings/terrausd-collapsed-with-18b-in-circulation-chainlink-proof-of-reserve-would-have-caught-it-earlier-4n3j.html",
+  "chainlink-functions-is-serverless-compute-with-oracle-guarantees-heres-the-full-request-lifecycle-56i0": "/writings/chainlink-functions-is-serverless-compute-with-oracle-guarantees-heres-the-full-request-lifecycle-56i0.html",
   "chainlink-automation-isnt-a-cron-job-its-a-consensus-decision-4986": "/writings/chainlink-automation-isnt-a-cron-job-its-a-consensus-decision-4986.html",
   "why-blocktimestamp-is-an-nft-mint-exploit-waiting-to-happen-and-what-vrf-actually-does-instead-4en9": "/writings/why-blocktimestamp-is-an-nft-mint-exploit-waiting-to-happen-and-what-vrf-actually-does-instead-4en9.html",
   "chainlinks-foundation-layer-explained-for-smart-contract-auditors-51g1": "/writings/chainlinks-foundation-layer-explained-for-smart-contract-auditors-51g1.html",

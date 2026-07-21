@@ -4,6 +4,42 @@ import { motion } from 'framer-motion'
 
 const posts = [
 {
+  "title": "Five Chainlink Products. One Architecture. The DON+OCR Pattern Underneath Everything.",
+  "slug": "five-chainlink-products-one-architecture-the-donocr-pattern-underneath-everything-597a",
+  "url": "/writings/five-chainlink-products-one-architecture-the-donocr-pattern-underneath-everything-597a.html",
+  "date": "2026-07-17T09:43:42Z"
+},
+{
+  "title": "I Asked in a Chainlink Discord: \"Is Chainlink Building Any AI?\" The Answer Sent Me Down a Rabbit Hole for Three Days.",
+  "slug": "i-asked-in-a-chainlink-discord-is-chainlink-building-any-ai-the-answer-sent-me-down-a-rabbit-5b7j",
+  "url": "/writings/i-asked-in-a-chainlink-discord-is-chainlink-building-any-ai-the-answer-sent-me-down-a-rabbit-5b7j.html",
+  "date": "2026-07-14T11:04:30Z"
+},
+{
+  "title": "CCIP's Router Pattern: Why a Single Immutable Contract Per Chain Is the Entire Security Bet",
+  "slug": "ccips-router-pattern-why-a-single-immutable-contract-per-chain-is-the-entire-security-bet-14ba",
+  "url": "/writings/ccips-router-pattern-why-a-single-immutable-contract-per-chain-is-the-entire-security-bet-14ba.html",
+  "date": "2026-07-10T10:47:56Z"
+},
+{
+  "title": "Chainlink Staking Isn't a Yield Farm. It's Cryptoeconomic Security With Real Consequences.",
+  "slug": "chainlink-staking-isnt-a-yield-farm-its-cryptoeconomic-security-with-real-consequences-41m2",
+  "url": "/writings/chainlink-staking-isnt-a-yield-farm-its-cryptoeconomic-security-with-real-consequences-41m2.html",
+  "date": "2026-07-08T10:36:58Z"
+},
+{
+  "title": "TerraUSD Collapsed With $18B in Circulation. Chainlink Proof of Reserve Would Have Caught It Earlier",
+  "slug": "terrausd-collapsed-with-18b-in-circulation-chainlink-proof-of-reserve-would-have-caught-it-earlier-4n3j",
+  "url": "/writings/terrausd-collapsed-with-18b-in-circulation-chainlink-proof-of-reserve-would-have-caught-it-earlier-4n3j.html",
+  "date": "2026-07-07T11:40:44Z"
+},
+{
+  "title": "Chainlink Functions Is Serverless Compute With Oracle Guarantees. Here's the Full Request Lifecycle.",
+  "slug": "chainlink-functions-is-serverless-compute-with-oracle-guarantees-heres-the-full-request-lifecycle-56i0",
+  "url": "/writings/chainlink-functions-is-serverless-compute-with-oracle-guarantees-heres-the-full-request-lifecycle-56i0.html",
+  "date": "2026-07-06T09:55:42Z"
+},
+{
   "title": "Chainlink Automation Isn't a Cron Job. It's a Consensus Decision",
   "slug": "chainlink-automation-isnt-a-cron-job-its-a-consensus-decision-4986",
   "url": "/writings/chainlink-automation-isnt-a-cron-job-its-a-consensus-decision-4986.html",
@@ -151,7 +187,7 @@ export default function BlogPreview() {
           </p>
 
           <div className="flex flex-col space-y-1">
-            {posts.map((post, i) => {
+            {posts.slice(0, 10).map((post, i) => {
               return (
               <motion.a
                 key={post.title}

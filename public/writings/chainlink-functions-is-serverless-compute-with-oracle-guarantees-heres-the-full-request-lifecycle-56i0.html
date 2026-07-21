@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chainlink Functions Is Serverless Compute With Oracle Guarantees. Here's the Full Request Lifecycle.</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      line-height: 1.8;
+      color: #e4e4e7;
+      background-color: #09090b;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+      font-size: 1.1rem;
+    }
+    h1, h2, h3, h4 { color: #ffffff; margin-top: 2rem; margin-bottom: 1rem; }
+    h1 { font-size: 2.25rem; font-weight: 700; line-height: 1.2; }
+    h2 { font-size: 1.8rem; }
+    h3 { font-size: 1.5rem; }
+    a { color: #60a5fa; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    p { margin-bottom: 1.5rem; }
+    img { max-width: 100%; height: auto; border-radius: 0.5rem; margin: 2rem 0; }
+    pre { background: #18181b; padding: 1.5rem; border-radius: 0.5rem; overflow-x: auto; font-family: monospace; }
+    code { background: #18181b; padding: 0.2rem 0.4rem; border-radius: 0.25rem; font-family: monospace; font-size: 0.9em; }
+    blockquote { border-left: 4px solid #3f3f46; margin: 0; padding-left: 1rem; color: #a1a1aa; font-style: italic; }
+    figure { margin: 2rem 0; }
+    figcaption { text-align: center; color: #a1a1aa; font-size: 0.9rem; margin-top: 0.5rem; }
+  </style>
+</head>
+<body>
+  <h1>Chainlink Functions Is Serverless Compute With Oracle Guarantees. Here's the Full Request Lifecycle.</h1>
+  <h2>
+  <a name="the-mental-model-most-people-have-is-too-simple" href="#the-mental-model-most-people-have-is-too-simple">
+  </a>
+  The mental model most people have is too simple
+</h2>
+
+<p>"Chainlink Functions lets smart contracts call APIs." That's true the same way "Ethereum lets people send money" is true. Technically accurate, misses almost everything that makes the product interesting and almost everything that matters for security.</p>
+
+<p>Chainlink Functions is better understood as a decentralized serverless compute platform: arbitrary JavaScript runs across every node in a DON, each node executes independently, OCR aggregates the results, and the aggregated output gets delivered back to the consumer contract through a verified callback. The "API call" is just one of the things that JavaScript can do inside that environment. The DON consensus and the threshold-encrypted secrets model are what make it meaningfully different from a centralized API proxy.</p>
+
+<p>This is day 9 of the 28-day Chainlink architecture series. Today covers the full request lifecycle, every contract in the chain, how threshold encryption protects secrets without exposing them to any individual node, and the integration mistakes that come from misunderstanding how billing and callbacks actually work.</p>
+
+<h2>
+  <a name="the-four-contracts-you-need-to-understand" href="#the-four-contracts-you-need-to-understand">
+  </a>
+  The four contracts you need to understand
+</h2>
+
+<p>Before tracing the full lifecycle, it helps to know exactly which contract does what.</p>
+
+<p><strong>FunctionsRouter</strong>: the stable, immutable entry point for consumers. Manages subscriptions and authorized consumer contracts. Its interface doesn't change when the underlying implementation upgrades, consumer contracts call <code>sendRequest</code> here and only here. Also handles billing: estimates fulfillment cost at request time and finalizes it at response time.</p>
+
+<p><strong>FunctionsCoordinator</strong>: the interface between the Router and the DON. Emits the <code>OracleRequest</code> event that DON nodes watch for. Handles fee distribution to transmitters via a fee pool. Inherits from <code>OCR2Base</code>, meaning the full OCR consensus machinery runs here. This contract can be upgraded independently of the Router, which is why the Router exists as a stable facade in front of it.</p>
+
+<p><strong>FunctionsClient</strong>: a base contract your consumer inherits. Handles the <code>handleOracleFulfillment</code> callback correctly and exposes <code>sendRequest</code>/<code>sendRequestCBOR</code> to you. If you're writing a consumer contract from scratch without inheriting <code>FunctionsClient</code>, you're taking on the responsibility of implementing the callback correctly yourself, which is where most custom integrations introduce bugs.</p>
+
+<p><strong>Your consumer contract</strong>: calls <code>sendRequest</code> on the Router, implements <code>fulfillRequest(bytes32 requestId, bytes memory response, bytes memory err)</code> to receive the result.</p>
+
+<h2>
+  <a name="the-full-request-lifecycle-step-by-step" href="#the-full-request-lifecycle-step-by-step">
+  </a>
+  The full request lifecycle, step by step
+</h2>
+
+<p>Here's every step from <code>sendRequest</code> to your contract receiving the result. This is the complete picture most tutorials skip.</p>
+
+<p><strong>Step 1: Consumer calls <code>sendRequest</code>.</strong><br>
+Your contract calls <code>sendRequest</code> on the FunctionsRouter, passing the JavaScript source code (or a DON-hosted secrets slot ID referencing pre-uploaded code), the subscription ID that pays for the request, the callback gas limit, and any arguments to pass into the script.</p>
+
+<p><strong>Step 2: Router estimates billing and reserves funds.</strong><br>
+The Router immediately estimates the total fulfillment cost using the current gas price, the gas overhead of the Router and Coordinator contracts, your callback gas limit, and the ETH/LINK price feed to translate everything into LINK. It blocks (reserves) that estimated amount from your subscription balance. If your balance is too low, the request reverts here.</p>
+
+<p><strong>Step 3: Router calls FunctionsCoordinator.</strong><br>
+The Router routes the request to the appropriate FunctionsCoordinator for the DON ID specified in the request. The Coordinator emits an <code>OracleRequest</code> event with everything the nodes need: the request ID, the encoded source code or reference, the subscription ID, and the encrypted secrets reference if provided.</p>
+
+<p><strong>Step 4: DON nodes decrypt secrets.</strong><br>
+This is the step most architecture diagrams skip. If the request includes secrets (API keys, auth tokens, anything that should be private), those secrets are encrypted using the DON's threshold public key before being uploaded. The decryption requires participation from multiple nodes simultaneously. No single node can decrypt secrets alone, because the decryption key is split across the DON using threshold cryptography. A compromised individual node can't exfiltrate your API key, because that node only holds a fragment of the key needed to decrypt it.</p>
+
+<p><strong>Step 5: Each node executes the JavaScript independently.</strong><br>
+Every node in the DON runs your JavaScript source code in its own isolated Deno sandbox. The sandbox has no access to the file system, no environment variables, no network permissions beyond HTTP requests made through the <code>Functions.makeHttpRequest</code> helper. Execution time limit is 10 seconds total, with any single external API call required to respond within 9 seconds. If execution exceeds the time limit, the node returns an error in bytes, not a revert.</p>
+
+<p><strong>Step 6: OCR aggregates the results.</strong><br>
+Each node's execution produces a return value, which must be a <code>Uint8Array</code>. The DON runs OCR to aggregate those values. For numeric responses, this is typically a median. The OCR consensus round here works exactly like Day 4's coverage of OCR generally: nodes share observations, reach agreement, sign a report.</p>
+
+<p><strong>Step 7: FunctionsCoordinator receives the aggregated result.</strong><br>
+One node transmits the signed OCR report to the FunctionsCoordinator on-chain. The Coordinator validates the quorum signatures, exactly like the aggregator contract in Data Feeds and the Registry in Automation.</p>
+
+<p><strong>Step 8: Router finalizes billing and calls your callback.</strong><br>
+The Router calculates the actual fulfillment cost (which may differ slightly from the estimate in Step 2), adjusts your subscription balance, distributes fees to the DON's transmitters, and then calls <code>fulfillRequest</code> on your consumer contract with the aggregated <code>response</code> and any <code>err</code>.</p>
+
+<h2>
+  <a name="how-threshold-encryption-works-for-secrets-precisely" href="#how-threshold-encryption-works-for-secrets-precisely">
+  </a>
+  How threshold encryption works for secrets, precisely
+</h2>
+
+<p>Most explainers say "secrets are encrypted to the DON" and leave it there. Here's what that actually means.</p>
+
+<p>Before making a request that requires an API key, you encrypt your secret using the DON's public key, which is derived from the individual key shares held by each node. You can do this locally using the Functions SDK. The encrypted secret gets uploaded either to a URL you host (off-chain secrets) or to a DON-hosted secrets slot (on-chain via the Coordinator).</p>
+
+<p>When a request comes in that references a secret, the DON nodes cooperate to decrypt it using threshold decryption. This requires a quorum of nodes to participate, because each holds only a fragment of the private key needed to decrypt. A single compromised node is not sufficient to decrypt the secret. The attacker would need to compromise enough nodes to meet the threshold, at which point they've already compromised the broader DON consensus, which is a much larger and more difficult attack than targeting a single node.</p>
+
+<p>The key implication for security design: the threat model for Functions secrets is the same as the threat model for the DON's data integrity generally. You're not trusting any individual node with your API key. You're trusting that the DON's threshold remains intact, the same trust assumption you're already making when you use Data Feeds from the same network.</p>
+
+<h2>
+  <a name="the-deno-sandbox-what-your-code-can-and-cant-do" href="#the-deno-sandbox-what-your-code-can-and-cant-do">
+  </a>
+  The Deno sandbox: what your code can and can't do
+</h2>
+
+<p>Each node executes your JavaScript in a Deno runtime. Specific constraints worth knowing before you write a Functions script:</p>
+
+<p><strong>What you can do:</strong></p>
+
+<ul>
+<li>Make HTTP requests via <code>Functions.makeHttpRequest</code> (this is the only allowed network call)</li>
+<li>Use top-level <code>await</code> for async operations</li>
+<li>Pass <code>args</code> (string array) and <code>bytesArgs</code> (hex-encoded bytes) from your contract call into the script</li>
+<li>Import modules, with the caveat that download time counts toward your 10-second execution budget and modules cannot use Deno permissions (file system, env vars, etc.)</li>
+<li>Return any value encoded as a <code>Uint8Array</code> using the <code>Functions.encodeUint256</code>, <code>Functions.encodeInt256</code>, <code>Functions.encodeString</code> helpers</li>
+</ul>
+
+<p><strong>What you cannot do:</strong></p>
+
+<ul>
+<li>Access the file system</li>
+<li>Read environment variables</li>
+<li>Open network connections other than HTTP via the Functions helper</li>
+<li>Exceed 10 seconds total execution time</li>
+<li>Have a single external API call take longer than 9 seconds</li>
+</ul>
+
+<p>If your script returns an error (timeout, HTTP failure, explicit <code>throw</code>), the error is returned as bytes in the <code>err</code> parameter of your callback, not as a revert. Your <code>fulfillRequest</code> function receives both a <code>response</code> and an <code>err</code> and should handle both cases explicitly.</p>
+
+<h2>
+  <a name="billing-what-youre-actually-paying-for" href="#billing-what-youre-actually-paying-for">
+  </a>
+  Billing: what you're actually paying for
+</h2>
+
+<p>This is the most commonly misunderstood part of Functions' cost model.</p>
+
+<p>Billing is denominated entirely in LINK, but you're not directly paying LINK for compute time. You're paying for the on-chain gas cost of fulfilling the request, translated into LINK using a price feed, plus a premium fee that compensates the DON for their off-chain work.</p>
+
+<p>The estimate at request time uses an intentionally overestimated gas price (higher than current) to ensure the request will be fulfilled even if gas prices spike between request and fulfillment. Your subscription is charged the actual cost at fulfillment time, not the estimate. The difference is returned to your subscription balance.</p>
+
+<p>Premium fees are USD-denominated but paid in LINK. The LINK equivalent is calculated at request time using the ETH/LINK or relevant native-to-LINK price feed. If that price feed is unavailable, the FunctionsCoordinator falls back to a hardcoded Wei-to-LINK ratio stored in its config.</p>
+
+<p>One practical implication: subscription balance monitoring matters even more for Functions than for Automation, because a Functions request that fails at Step 2 (insufficient balance) silently doesn't execute, with no on-chain error visible to your contract. Your contract called <code>sendRequest</code>, the call reverted, and nothing happened. The revert is not surfaced through <code>fulfillRequest</code> since no request was ever accepted.</p>
+
+<h2>
+  <a name="5-audit-checks-for-any-functions-integration" href="#5-audit-checks-for-any-functions-integration">
+  </a>
+  5 audit checks for any Functions integration
+</h2>
+
+<p><strong>1. Is <code>fulfillRequest</code> handling both <code>response</code> AND <code>err</code>?</strong><br>
+Every callback receives both parameters. A contract that blindly decodes <code>response</code> without checking whether <code>err</code> is non-empty will silently act on a failed request's empty response bytes. Always check <code>err.length == 0</code> before trusting <code>response</code>.</p>
+
+<p><strong>2. Is the consumer contract in the subscription's authorized consumer list?</strong><br>
+The FunctionsRouter only accepts <code>sendRequest</code> calls from consumer contracts that are explicitly authorized on the subscription. If your contract isn't listed, <code>sendRequest</code> reverts. Simple to verify, easy to forget when deploying to a new network or a new contract version.</p>
+
+<p><strong>3. Is the callback gas limit sufficient?</strong><br>
+The callback gas limit is set at request time inside <code>sendRequest</code>. If <code>fulfillRequest</code>'s execution exceeds this limit, the callback fails silently and <code>response</code>/<code>err</code> are never delivered. The maximum allowed callback gas is 300,000. If your callback does anything complex, profile it before setting this value.</p>
+
+<p><strong>4. Are secrets stored with appropriate TTL?</strong><br>
+DON-hosted secrets have a Time-To-Live (TTL) in minutes. After expiry, nodes delete the secret and any request referencing it will fail with a secrets-unavailable error. For production integrations, either refresh secrets before TTL expiry or use off-chain secrets with a URL you control.</p>
+
+<p><strong>5. Is the subscription balance monitored?</strong><br>
+An empty or below-minimum subscription causes <code>sendRequest</code> to revert silently from your contract's perspective (unless you explicitly catch the revert). Fund the subscription with a buffer above the minimum and alert before it gets low.</p>
+
+
+<hr>
+
+<p><em>I'm a smart contract security researcher writing through Chainlink's full architecture for 28 days. Follow along at <a href="https://www.ramprasadgoud.dev/#writing" target="_blank" rel="noopener noreferrer">ramprasadgoud.dev</a> or on X <a href="https://x.com/0xramprasad" target="_blank" rel="noopener noreferrer">@0xramprasad</a>.</em></p>
+
+
+</body>
+</html>
