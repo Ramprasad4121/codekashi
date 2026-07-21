@@ -6,6 +6,7 @@ import Stack from '@/components/stack'
 import Experience from '@/components/experience'
 import Audits from '@/components/audits'
 import BlogPreview from '@/components/blog-preview'
+import BookAudit from '@/components/book-audit'
 import Connect from '@/components/connect'
 import Footer from '@/components/footer'
 
@@ -21,6 +22,7 @@ export default function Home() {
         <Audits />
         <Projects />
         <BlogPreview />
+        <BookAudit />
         <Connect />
       </main>
       <Footer />
