@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chainlink Runtime Environment (CRE)</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      line-height: 1.8;
+      color: #e4e4e7;
+      background-color: #09090b;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+      font-size: 1.1rem;
+    }
+    h1, h2, h3, h4 { color: #ffffff; margin-top: 2rem; margin-bottom: 1rem; }
+    h1 { font-size: 2.25rem; font-weight: 700; line-height: 1.2; }
+    h2 { font-size: 1.8rem; }
+    h3 { font-size: 1.5rem; }
+    a { color: #60a5fa; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    p { margin-bottom: 1.5rem; }
+    img { max-width: 100%; height: auto; border-radius: 0.5rem; margin: 2rem 0; }
+    pre { background: #18181b; padding: 1.5rem; border-radius: 0.5rem; overflow-x: auto; font-family: monospace; }
+    code { background: #18181b; padding: 0.2rem 0.4rem; border-radius: 0.25rem; font-family: monospace; font-size: 0.9em; }
+    blockquote { border-left: 4px solid #3f3f46; margin: 0; padding-left: 1rem; color: #a1a1aa; font-style: italic; }
+    figure { margin: 2rem 0; }
+    figcaption { text-align: center; color: #a1a1aa; font-size: 0.9rem; margin-top: 0.5rem; }
+  </style>
+</head>
+<body>
+  <h1>Chainlink Runtime Environment (CRE)</h1>
+  <h2>
+  <a name="read-this-first-if-your-upkeep-stopped-executing" href="#read-this-first-if-your-upkeep-stopped-executing">
+  </a>
+  Read this first if your upkeep stopped executing
+</h2>
+
+<p>Chainlink Automation v1.x sunset on June 30, 2026. Chainlink Automation v2.1 sunset on July 31, 2026, four days ago.If you had a production upkeep running on Automation and haven't migrated yet, it has already stopped being performed. The Chainlink Automation App will show a "deprecated" notice for any upkeep on a registry earlier than v2.1, and as of the v2.1 sunset date, that now includes v2.1 itself.</p>
+
+<p>The replacement is the Chainlink Runtime Environment (CRE), and Chainlink Labs built a specific migration path, called the Automation Migration template, precisely so this transition doesn't require rewriting your existing contracts from scratch. This article is the fastest path from "my upkeep stopped running" to "I have a working CRE workflow," using the official bridge pattern.</p>
+
+<p>This is day 22 of the 28-day Chainlink architecture series, but today isn't theory. It's a checklist, and if you're reading this because something in production broke, start executing it now.</p>
+
+<h2>
+  <a name="what-actually-changes-in-plain-terms" href="#what-actually-changes-in-plain-terms">
+  </a>
+  What actually changes, in plain terms
+</h2>
+
+<p>In Automation, you registered an upkeep with two functions: <code>checkUpkeep()</code>, simulated off-chain by the Automation network, and <code>performUpkeep()</code>, executed on-chain when <code>checkUpkeep()</code> returned true.</p>
+
+<p>In CRE, the equivalent unit is a workflow: a TypeScript or Go project compiled to WebAssembly and registered with the network. Workflows are started by triggers (a cron schedule, an HTTP request, or an on-chain log event), run your logic off-chain with no gas constraints during the check phase, and write results on-chain through a signed report delivered via the CRE <code>KeystoneForwarder</code> to any contract implementing <code>IReceiver</code>.</p>
+
+<p>CRE is a strict superset of Automation. Everything Automation does, CRE does, and several patterns that used to require multiple separate upkeeps now collapse into a single workflow.</p>
+
+<p>Here's the direct terminology mapping so you're not translating concepts on the fly:</p>
+
+<div class="table-wrapper-paragraph"><table>
+<thead>
+<tr>
+<th>Chainlink Automation</th>
+<th>Chainlink CRE</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Upkeep registration</td>
+<td>CRE workflow deployment</td>
+</tr>
+<tr>
+<td>Upkeep contract</td>
+<td>Existing target contract + an <code>IReceiver</code> bridge</td>
+</tr>
+<tr>
+<td>
+<code>checkUpkeep()</code> function</td>
+<td>Workflow logic inside the handler</td>
+</tr>
+<tr>
+<td><code>performUpkeep(bytes performData)</code></td>
+<td>
+<code>onReport(metadata, report)</code> on an <code>IReceiver</code>, then a bridge call to your target contract</td>
+</tr>
+<tr>
+<td>Time-based Upkeep</td>
+<td>Built-in Cron trigger</td>
+</tr>
+<tr>
+<td>Log Trigger Upkeep</td>
+<td>EVM Log trigger</td>
+</tr>
+<tr>
+<td>Custom Logic Upkeep</td>
+<td>Cron trigger + <code>evmClient.callContract()</code> in the handler</td>
+</tr>
+<tr>
+<td>Automation Forwarder</td>
+<td>CRE <code>KeystoneForwarder</code> + your receiver authorization</td>
+</tr>
+</tbody>
+</table></div>
+
+<h2>
+  <a name="the-fastest-path-the-bridge-pattern" href="#the-fastest-path-the-bridge-pattern">
+  </a>
+  The fastest path: the Bridge pattern
+</h2>
+
+<p>Here's the part that matters most if you're migrating today under time pressure. You do not need to reimplement <code>checkUpkeep</code>, <code>checkLog</code>, or <code>performUpkeep</code> inside your existing contract. The official Automation Migration template uses a Bridge pattern: you deploy a generic <code>AutomationReceiver.sol</code> contract that receives CRE reports and forwards approved calls to your existing Automation contract, unchanged.</p>
+
+<p>The only thing you may need to touch in your existing contract is a permission check. If your contract currently checks <code>msg.sender</code> against an Automation Forwarder allowlist, or has role-based permissions gating who can call <code>performUpkeep</code>, you need to authorize the new <code>AutomationReceiver</code> address or adjust that permission boundary. Otherwise, your business logic stays exactly as it is.</p>
+
+<h2>
+  <a name="migration-steps-in-order" href="#migration-steps-in-order">
+  </a>
+  Migration steps, in order
+</h2>
+
+<p>Step 1: Scaffold the migration project<br>
+</p>
+
+<div class="highlight js-code-highlight">
+<pre class="highlight shell"><code>cre init <span class="nt">--template</span><span class="o">=</span>automation-migration-go <span class="nt">--project-name</span> my-automation-migration <span class="nt">--workflow-name</span> my-workflow
+</code></pre>
+<div class="highlight__panel js-actions-panel">
+<div class="highlight__panel-action js-fullscreen-code-action">
+    <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" viewbox="0 0 24 24" class="highlight-action crayons-icon highlight-action--fullscreen-on"><title>Enter fullscreen mode</title>
+    <path d="M16 3h6v6h-2V5h-4V3zM2 3h6v2H4v4H2V3zm18 16v-4h2v6h-6v-2h4zM4 19h4v2H2v-6h2v4z"></path>
+</svg>
+
+    <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" viewbox="0 0 24 24" class="highlight-action crayons-icon highlight-action--fullscreen-off"><title>Exit fullscreen mode</title>
+    <path d="M18 7h4v2h-6V3h2v4zM8 9H2V7h4V3h2v6zm10 8v4h-2v-6h6v2h-4zM8 15v6H6v-4H2v-2h6z"></path>
+</svg>
+
+</div>
+</div>
+</div>
+
+
+
+<p>This pulls the official template directly, available in both Go and TypeScript. Use whichever matches your team's existing stack.</p>
+
+<p>Step 2: Deploy the Bridge contract</p>
+
+<p>Deploy <code>AutomationReceiver.sol</code> from the template to your target chain, passing your chain's CRE <code>KeystoneForwarder</code> address to the constructor. The forwarder address is chain-specific. Check the Forwarder Directory in the CRE docs for the correct address before deploying; passing the wrong forwarder address means your receiver will never accept valid reports.</p>
+
+<p>Step 3: Configure your workflow</p>
+
+<p>Update <code>my-workflow/config.test.json</code> with your previously deployed <code>AutomationReceiver</code> address, your target contract address, the migration type (<code>CRON</code>, <code>CUSTOM</code>, or <code>LOG</code> depending on which upkeep type you're migrating), and the schedule or log filters that match your original upkeep configuration.</p>
+
+<p>Step 4: Authorize the call</p>
+
+<p>This is the step people miss and then wonder why their workflow fails silently. Before your workflow can actually call your target contract through the receiver, you need to run a <code>setCallAllowed()</code> transaction:<br>
+</p>
+
+<div class="highlight js-code-highlight">
+<pre class="highlight plaintext"><code>Function: setCallAllowed(address,bytes4,bool)
+target: &lt;your existing Automation upkeep contract address&gt;
+selector: &lt;the 4-byte function selector for the function being called&gt;
+allowed: true
+</code></pre>
+<div class="highlight__panel js-actions-panel">
+<div class="highlight__panel-action js-fullscreen-code-action">
+    <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" viewbox="0 0 24 24" class="highlight-action crayons-icon highlight-action--fullscreen-on"><title>Enter fullscreen mode</title>
+    <path d="M16 3h6v6h-2V5h-4V3zM2 3h6v2H4v4H2V3zm18 16v-4h2v6h-6v-2h4zM4 19h4v2H2v-6h2v4z"></path>
+</svg>
+
+    <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" viewbox="0 0 24 24" class="highlight-action crayons-icon highlight-action--fullscreen-off"><title>Exit fullscreen mode</title>
+    <path d="M18 7h4v2h-6V3h2v4zM8 9H2V7h4V3h2v6zm10 8v4h-2v-6h6v2h-4zM8 15v6H6v-4H2v-2h6z"></path>
+</svg>
+
+</div>
+</div>
+</div>
+
+
+
+<p>Compute the function selector with the <code>cast</code> CLI tool:<br>
+</p>
+
+<div class="highlight js-code-highlight">
+<pre class="highlight shell"><code>cast sig <span class="s1">'performUpkeep(bytes)'</span>
+<span class="c"># Output: 0x4585e33b</span>
+</code></pre>
+<div class="highlight__panel js-actions-panel">
+<div class="highlight__panel-action js-fullscreen-code-action">
+    <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" viewbox="0 0 24 24" class="highlight-action crayons-icon highlight-action--fullscreen-on"><title>Enter fullscreen mode</title>
+    <path d="M16 3h6v6h-2V5h-4V3zM2 3h6v2H4v4H2V3zm18 16v-4h2v6h-6v-2h4zM4 19h4v2H2v-6h2v4z"></path>
+</svg>
+
+    <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" viewbox="0 0 24 24" class="highlight-action crayons-icon highlight-action--fullscreen-off"><title>Exit fullscreen mode</title>
+    <path d="M18 7h4v2h-6V3h2v4zM8 9H2V7h4V3h2v6zm10 8v4h-2v-6h6v2h-4zM8 15v6H6v-4H2v-2h6z"></path>
+</svg>
+
+</div>
+</div>
+</div>
+
+
+
+<p>If you're calling a custom function instead of <code>performUpkeep</code>, compute the selector for that function specifically. This step is what tells the <code>AutomationReceiver</code> it's allowed to forward calls to your specific target and function. Skip it, and every execution reverts with <code>CallNotAllowed</code>.</p>
+
+<p>Step 5 (production, don't skip this): set workflow identity checks</p>
+
+<p>The generic receiver, as configured after step 4, will forward calls from any workflow that references your target contract and approved selector. For a migration test, that's fine. For production, it's a real security gap: anyone who deploys a CRE workflow calling your <code>AutomationReceiver</code> with the right target and selector could trigger your contract's function.</p>
+
+<p>Lock this down with the identity setters:<br>
+</p>
+
+<div class="highlight js-code-highlight">
+<pre class="highlight plaintext"><code>setExpectedAuthor(address _author)
+setExpectedWorkflowId(string _workflowId)
+setExpectedWorkflowName(string _workflowName)
+</code></pre>
+<div class="highlight__panel js-actions-panel">
+<div class="highlight__panel-action js-fullscreen-code-action">
+    <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" viewbox="0 0 24 24" class="highlight-action crayons-icon highlight-action--fullscreen-on"><title>Enter fullscreen mode</title>
+    <path d="M16 3h6v6h-2V5h-4V3zM2 3h6v2H4v4H2V3zm18 16v-4h2v6h-6v-2h4zM4 19h4v2H2v-6h2v4z"></path>
+</svg>
+
+    <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" viewbox="0 0 24 24" class="highlight-action crayons-icon highlight-action--fullscreen-off"><title>Exit fullscreen mode</title>
+    <path d="M18 7h4v2h-6V3h2v4zM8 9H2V7h4V3h2v6zm10 8v4h-2v-6h6v2h-4zM8 15v6H6v-4H2v-2h6z"></path>
+</svg>
+
+</div>
+</div>
+</div>
+
+
+
+<p>Set at least one of these before you consider the migration production-ready. A generic receiver accepting arbitrary <code>(target, data)</code> calls from any workflow is convenient for testing and a genuine vulnerability if left open in production.</p>
+
+<p>Step 6: Simulate before deploying<br>
+</p>
+
+<div class="highlight js-code-highlight">
+<pre class="highlight shell"><code>cre workflow simulate my-workflow <span class="nt">--target</span><span class="o">=</span>test-settings
+</code></pre>
+<div class="highlight__panel js-actions-panel">
+<div class="highlight__panel-action js-fullscreen-code-action">
+    <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" viewbox="0 0 24 24" class="highlight-action crayons-icon highlight-action--fullscreen-on"><title>Enter fullscreen mode</title>
+    <path d="M16 3h6v6h-2V5h-4V3zM2 3h6v2H4v4H2V3zm18 16v-4h2v6h-6v-2h4zM4 19h4v2H2v-6h2v4z"></path>
+</svg>
+
+    <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" viewbox="0 0 24 24" class="highlight-action crayons-icon highlight-action--fullscreen-off"><title>Exit fullscreen mode</title>
+    <path d="M18 7h4v2h-6V3h2v4zM8 9H2V7h4V3h2v6zm10 8v4h-2v-6h6v2h-4zM8 15v6H6v-4H2v-2h6z"></path>
+</svg>
+
+</div>
+</div>
+</div>
+
+
+
+<p>For log-trigger migrations specifically, provide a transaction hash containing the actual event so the simulator doesn't sit waiting for a live event to fire:<br>
+</p>
+
+<div class="highlight js-code-highlight">
+<pre class="highlight shell"><code>cre workflow simulate my-workflow <span class="se">\</span>
+  <span class="nt">--target</span><span class="o">=</span>test-settings <span class="se">\</span>
+  <span class="nt">--non-interactive</span> <span class="se">\</span>
+  <span class="nt">--trigger-index</span><span class="o">=</span>0 <span class="se">\</span>
+  <span class="nt">--evm-tx-hash</span><span class="o">=</span>0x... <span class="se">\</span>
+  <span class="nt">--evm-event-index</span><span class="o">=</span>0
+</code></pre>
+<div class="highlight__panel js-actions-panel">
+<div class="highlight__panel-action js-fullscreen-code-action">
+    <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" viewbox="0 0 24 24" class="highlight-action crayons-icon highlight-action--fullscreen-on"><title>Enter fullscreen mode</title>
+    <path d="M16 3h6v6h-2V5h-4V3zM2 3h6v2H4v4H2V3zm18 16v-4h2v6h-6v-2h4zM4 19h4v2H2v-6h2v4z"></path>
+</svg>
+
+    <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" viewbox="0 0 24 24" class="highlight-action crayons-icon highlight-action--fullscreen-off"><title>Exit fullscreen mode</title>
+    <path d="M18 7h4v2h-6V3h2v4zM8 9H2V7h4V3h2v6zm10 8v4h-2v-6h6v2h-4zM8 15v6H6v-4H2v-2h6z"></path>
+</svg>
+
+</div>
+</div>
+</div>
+
+
+
+<p>Step 7: Deploy to production<br>
+</p>
+
+<div class="highlight js-code-highlight">
+<pre class="highlight shell"><code>cre workflow deploy my-workflow <span class="nt">--target</span><span class="o">=</span>production-settings
+</code></pre>
+<div class="highlight__panel js-actions-panel">
+<div class="highlight__panel-action js-fullscreen-code-action">
+    <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" viewbox="0 0 24 24" class="highlight-action crayons-icon highlight-action--fullscreen-on"><title>Enter fullscreen mode</title>
+    <path d="M16 3h6v6h-2V5h-4V3zM2 3h6v2H4v4H2V3zm18 16v-4h2v6h-6v-2h4zM4 19h4v2H2v-6h2v4z"></path>
+</svg>
+
+    <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" viewbox="0 0 24 24" class="highlight-action crayons-icon highlight-action--fullscreen-off"><title>Exit fullscreen mode</title>
+    <path d="M18 7h4v2h-6V3h2v4zM8 9H2V7h4V3h2v6zm10 8v4h-2v-6h6v2h-4zM8 15v6H6v-4H2v-2h6z"></path>
+</svg>
+
+</div>
+</div>
+</div>
+
+
+
+<h2>
+  <a name="if-your-workflow-fails-with-callnotallowed" href="#if-your-workflow-fails-with-callnotallowed">
+  </a>
+  If your workflow fails with CallNotAllowed
+</h2>
+
+<p>This is the most common failure during migration. Four things to check in order:</p>
+
+<ol>
+<li><p>Function selector mismatch.The selector configured in <code>setCallAllowed()</code> must exactly match the function your workflow is actually calling. Recompute it with <code>cast sig</code> and compare byte for byte.</p></li>
+<li><p>Permission not actually set. Confirm <code>setCallAllowed()</code> was called with <code>allowed: true</code> for the specific target and selector pair you're using. A transaction that reverted or was sent with the wrong parameters leaves the permission unset.</p></li>
+<li><p>Workflow identity mismatch. If you configured <code>setExpectedAuthor</code>, <code>setExpectedWorkflowId</code>, or <code>setExpectedWorkflowName</code> in Step 5, verify the workflow you're deploying actually matches those values. A typo here silently blocks every execution.</p></li>
+<li><p>Wrong forwarder address. Verify the <code>KeystoneForwarder</code> address passed to your <code>AutomationReceiver</code> constructor matches the correct address for your specific chain. This is set once at deployment and can't be changed after, so if it's wrong, you need to redeploy the receiver.</p></li>
+</ol>
+
+<h2>
+  <a name="what-this-means-beyond-the-migration-deadline" href="#what-this-means-beyond-the-migration-deadline">
+  </a>
+  What this means beyond the migration deadline
+</h2>
+
+<p>The Bridge pattern is a migration convenience, not the end state. Once your upkeep is running on CRE, the actual value of the platform is that a workflow isn't limited to one trigger and one on-chain call the way an upkeep was. A single CRE workflow can combine multiple triggers, multiple off-chain HTTP calls, reads and writes across multiple chains, and conditional logic that would have required several separate upkeeps under the old model.</p>
+
+<p>That's a conversation for a future article once you're back up and running. Right now, if your upkeep stopped executing, the priority is getting through the seven steps above to restore service.</p>
+
+
+<hr>
+
+<p><em>I'm a smart contract security researcher writing through Chainlink's full architecture for 28 days. Follow along at <a href="https://www.ramprasadgoud.dev/#writing" target="_blank" rel="noopener noreferrer">ramprasadgoud.dev</a> or on X <a href="https://x.com/0xramprasad" target="_blank" rel="noopener noreferrer">@0xramprasad</a>.</em></p>
+
+
+</body>
+</html>

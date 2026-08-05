@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CCIP Doesn't Run Two DONs Anymore. Here's What v1.6 Actually Changed.</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      line-height: 1.8;
+      color: #e4e4e7;
+      background-color: #09090b;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+      font-size: 1.1rem;
+    }
+    h1, h2, h3, h4 { color: #ffffff; margin-top: 2rem; margin-bottom: 1rem; }
+    h1 { font-size: 2.25rem; font-weight: 700; line-height: 1.2; }
+    h2 { font-size: 1.8rem; }
+    h3 { font-size: 1.5rem; }
+    a { color: #60a5fa; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    p { margin-bottom: 1.5rem; }
+    img { max-width: 100%; height: auto; border-radius: 0.5rem; margin: 2rem 0; }
+    pre { background: #18181b; padding: 1.5rem; border-radius: 0.5rem; overflow-x: auto; font-family: monospace; }
+    code { background: #18181b; padding: 0.2rem 0.4rem; border-radius: 0.25rem; font-family: monospace; font-size: 0.9em; }
+    blockquote { border-left: 4px solid #3f3f46; margin: 0; padding-left: 1rem; color: #a1a1aa; font-style: italic; }
+    figure { margin: 2rem 0; }
+    figcaption { text-align: center; color: #a1a1aa; font-size: 0.9rem; margin-top: 0.5rem; }
+  </style>
+</head>
+<body>
+  <h1>CCIP Doesn't Run Two DONs Anymore. Here's What v1.6 Actually Changed.</h1>
+  <h2>
+  <a name="the-thing-most-content-gets-wrong-about-ccip" href="#the-thing-most-content-gets-wrong-about-ccip">
+  </a>
+  The thing most content gets wrong about CCIP
+</h2>
+
+<p>Search for "CCIP architecture" today and most of what you find still describes two separate oracle networks: a Committing DON and an Executing DON, two distinct networks with different node sets, each responsible for a different phase of cross-chain message delivery.</p>
+
+<p>That description was accurate before v1.6. It isn't anymore.</p>
+
+<p>As of CCIP v1.6, the architecture changed to a single DON called the Role DON that includes all participating nodes. Two OCR plugins run on these nodes: one for committing and one for executing. They are not separate networks. They are subsets of the same node set, distinguished solely by their assigned roles.</p>
+
+<p>This distinction matters more than it sounds. The security model, the trust assumptions, and the way you should think about CCIP's decentralization are all different depending on which version of this architecture you're working from. If you're writing about CCIP, auditing a CCIP integration, or preparing for a technical interview at Chainlink, saying "two separate DONs" in 2025 or 2026 signals that your knowledge predates v1.6.</p>
+
+<p>This is day 15 of the 28-day Chainlink architecture series. Today covers everything off-chain in CCIP: the Role DON, the Commit OCR plugin, the Executing OCR plugin, and a critical update about the Risk Management Network that most content has not caught up to.</p>
+
+<p><a href="https://media2.dev.to/dynamic/image/width=800%2Cheight=%2Cfit=scale-down%2Cgravity=auto%2Cformat=auto/https%3A%2F%2Fdev-to-uploads.s3.us-east-2.amazonaws.com%2Fuploads%2Farticles%2F2ewg0v250rudaqg9cwez.png" class="article-body-image-wrapper"><img src="https://media2.dev.to/dynamic/image/width=800%2Cheight=%2Cfit=scale-down%2Cgravity=auto%2Cformat=auto/https%3A%2F%2Fdev-to-uploads.s3.us-east-2.amazonaws.com%2Fuploads%2Farticles%2F2ewg0v250rudaqg9cwez.png" alt=" " loading="lazy" width="800" height="450"></a></p>
+
+<h2>
+  <a name="why-the-single-role-don-model-is-the-right-design" href="#why-the-single-role-don-model-is-the-right-design">
+  </a>
+  Why the single Role DON model is the right design
+</h2>
+
+<p>The old two-DON model had a coherent rationale: separate the concerns, give each phase its own dedicated node set, make it easier to reason about what each group of nodes is responsible for. The problem is that two separate networks means two separate trust assumptions, two separate quorum requirements, and two separate potential failure points. Compromising either one independently breaks the whole system.</p>
+
+<p>The Role DON collapses this into one. All nodes participate in the same DON. The OCR protocol assigns roles: some nodes run the Commit plugin for a given source chain, some run the Execute plugin for a given destination chain, but they're all members of the same network. A quorum of the full Role DON must agree on the state of the system, not two smaller, independent quorums of two different networks.</p>
+
+<p>From a trust-minimization standpoint, this is strictly better. An attacker targeting the commit process now has to compromise nodes from the same set they'd need to compromise to attack the execution process. There's no weaker link between the two phases.</p>
+
+<p><a href="https://media2.dev.to/dynamic/image/width=800%2Cheight=%2Cfit=scale-down%2Cgravity=auto%2Cformat=auto/https%3A%2F%2Fdev-to-uploads.s3.us-east-2.amazonaws.com%2Fuploads%2Farticles%2F09biulofxxe7pwsl8oow.gif" class="article-body-image-wrapper"><img src="https://media2.dev.to/dynamic/image/width=800%2Cheight=%2Cfit=scale-down%2Cgravity=auto%2Cformat=auto/https%3A%2F%2Fdev-to-uploads.s3.us-east-2.amazonaws.com%2Fuploads%2Farticles%2F09biulofxxe7pwsl8oow.gif" alt=" " loading="lazy" width="800" height="450"></a></p>
+
+<h2>
+  <a name="the-commit-ocr-plugin-three-phases" href="#the-commit-ocr-plugin-three-phases">
+  </a>
+  The Commit OCR Plugin: three phases
+</h2>
+
+<p>The Commit plugin handles the first half of message delivery. Here's how it works across three distinct phases.</p>
+
+<p><strong>Observation phase.</strong> The Role DON contains subcommittees, groups of nodes assigned to read from specific source chains. Each subcommittee independently reads the source chain's OnRamp for new messages, identifies the range of sequence numbers to include in the next batch, and computes a Merkle root over those messages. A minimum threshold of valid observations is required to proceed. No single node controls what gets included.</p>
+
+<p><strong>Query phase.</strong> The designated leader for the current OCR round assembles a proposed Commit Report from the observations and shares it with all other nodes in the Role DON for validation. Nodes that submitted invalid observations get their contributions dropped. The remaining valid observations must meet the threshold to achieve consensus. This is the off-chain Byzantine fault-tolerance step: nodes can verify each other's work before anything goes on-chain.</p>
+
+<p><strong>Reporting phase.</strong> A subcommittee of nodes assigned to write to the destination chain submits the final Commit Report on-chain to the OffRamp contract. The report can include Merkle roots from multiple source chains in a single submission. It can also include price reports for fee tokens. The FeeQuoter needs up-to-date token prices to calculate costs, and the Commit plugin handles delivering those updates to avoid requiring a separate price oracle call per message.</p>
+
+<p>The OffRamp contract stores the committed Merkle root. Nothing gets executed at this stage. Committing is only an attestation that a set of messages exists on the source chain and has been verified by a quorum of the Role DON.</p>
+
+<h2>
+  <a name="the-executing-ocr-plugin-three-phases" href="#the-executing-ocr-plugin-three-phases">
+  </a>
+  The Executing OCR Plugin: three phases
+</h2>
+
+<p>The Executing plugin takes over after a Merkle root has been committed on-chain. It handles the second half of message delivery.</p>
+
+<p><strong>Pending execution check.</strong> The subcommittee connected to the destination chain scans the OffRamp for committed Merkle roots that haven't yet been fully executed. These represent messages that have been verified at the commit stage but not yet delivered to their receivers. This is the "pending" queue.</p>
+
+<p><strong>Validation and optimization.</strong> The DON goes back to the source chain to verify the individual events corresponding to the pending messages. This is the crucial double-check: the Commit plugin attested to the Merkle root, and the Execute plugin independently verifies that the messages actually exist on the source chain before executing anything. Once validated, the Executing DON optimizes the batch, considering gas limits, destination chain constraints, and message ordering, to determine which messages to include in the current execution transaction.</p>
+
+<p><strong>Execution.</strong> The optimized batch of messages is executed on the destination chain. The OffRamp validates the Merkle proofs for each individual message against the stored root, then calls the relevant token pools and receiver contracts. <code>ExecutionStateChanged</code> events are emitted with either Success or Failure status. Failed executions remain available for permissionless manual re-execution.</p>
+
+<h2>
+  <a name="the-important-update-on-the-risk-management-network" href="#the-important-update-on-the-risk-management-network">
+  </a>
+  The important update on the Risk Management Network
+</h2>
+
+<p>Most content written about CCIP describes the Risk Management Network as an independently operated off-chain monitoring layer that watches for anomalies in committed Merkle roots and can trigger an emergency halt across the system.</p>
+
+<p>The current official docs state clearly that this has changed: the Risk Management Network's automated off-chain role is no longer active in current CCIP deployments, but is expected to be offered as an optional validation layer in future releases.</p>
+
+<p>What remains active is the on-chain RMN Contract. The Router, OnRamp, OffRamp, and Token Pool contracts all still call <code>isCursed()</code> on the RMN Contract before processing transactions. Manual curse initiation by the CCIP Owner is still available as an emergency safeguard for per-chain or network-wide halts when required.</p>
+
+<p>What this means in practice: the automated off-chain anomaly detection layer that independently watched for suspicious commit patterns has been paused. The on-chain emergency brake still functions. CCIP's current risk controls rely on configurable rate limits, developer token attestations, and monitoring capabilities rather than an active off-chain RMN node network.</p>
+
+<p>This is an important nuance to get right. Saying "the RMN provides an independent off-chain monitoring layer watching every Merkle root" is describing intended future functionality, not current behavior. The contracts call <code>isCursed()</code>, but that flag can only be set manually right now, not automatically by off-chain RMN nodes detecting anomalies.</p>
+
+<h2>
+  <a name="how-the-two-plugins-coordinate" href="#how-the-two-plugins-coordinate">
+  </a>
+  How the two plugins coordinate
+</h2>
+
+<p>One detail worth being explicit about: the Commit and Execute plugins don't run in strict sequence waiting for each other. The Commit plugin runs continuously, committing new batches as messages arrive on source chains. The Execute plugin also runs continuously, checking for new committed roots and processing them into executions as fast as the destination chain's gas and confirmation requirements allow.</p>
+
+<p>They operate as parallel pipelines on the same Role DON node set. A single node might be running the Commit plugin for one source chain and the Execute plugin for a different destination chain simultaneously, depending on its assigned roles within the network. The Role DON architecture makes this possible precisely because it's one unified network rather than two separate ones with their own separate job assignments.</p>
+
+<h2>
+  <a name="what-this-means-for-auditors-and-builders" href="#what-this-means-for-auditors-and-builders">
+  </a>
+  What this means for auditors and builders
+</h2>
+
+<p><strong>The terminology audit.</strong> Any CCIP documentation, code comment, or architecture diagram you encounter that still refers to "the Committing DON" and "the Executing DON" as separate networks was written before v1.6. Treat it as potentially outdated on other architecture details too.</p>
+
+<p><strong>The RMN audit.</strong> Any security analysis of a CCIP integration that relies on the RMN's off-chain automated monitoring as a defense layer should note that this layer is currently inactive. The on-chain curse mechanism still exists, but it requires manual intervention to trigger, not automatic detection.</p>
+
+<p><strong>The execution failure path.</strong> When <code>ExecutionStateChanged</code> emits a Failure status, that message isn't lost. It remains committed on-chain, available for permissionless manual execution after a configured delay. A receiver contract that handles a message for the first time should be idempotent: able to handle re-execution without double-applying effects, because the same message may arrive more than once if the first attempt fails and a manual re-execution is triggered. This is the same idempotency point from Day 12's onchain architecture article, reinforced here at the off-chain layer where the failure is generated.</p>
+
+<p><a href="https://media2.dev.to/dynamic/image/width=800%2Cheight=%2Cfit=scale-down%2Cgravity=auto%2Cformat=auto/https%3A%2F%2Fdev-to-uploads.s3.us-east-2.amazonaws.com%2Fuploads%2Farticles%2Fpoovh95ntynakxdzv1yu.jpg" class="article-body-image-wrapper"><img src="https://media2.dev.to/dynamic/image/width=800%2Cheight=%2Cfit=scale-down%2Cgravity=auto%2Cformat=auto/https%3A%2F%2Fdev-to-uploads.s3.us-east-2.amazonaws.com%2Fuploads%2Farticles%2Fpoovh95ntynakxdzv1yu.jpg" alt="CCIP offchain architecture diagram from Chainlink's official docs" loading="lazy" width="800" height="650"></a><br>
+<em>Source: docs.chain.link, CCIP Offchain Architecture Overview</em></p>
+
+
+<hr>
+
+<p><em>I'm a smart contract security researcher writing through Chainlink's full architecture for 28 days. Follow along at <a href="https://www.ramprasadgoud.dev/#writing" target="_blank" rel="noopener noreferrer">ramprasadgoud.dev</a> or on X <a href="https://x.com/0xramprasad" target="_blank" rel="noopener noreferrer">@0xramprasad</a>.</em></p>
+
+
+</body>
+</html>

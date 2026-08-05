@@ -3,6 +3,11 @@ import { notFound } from 'next/navigation';
 import AutoResizingIframe from '@/components/auto-resizing-iframe';
 
 const postsMap: Record<string, string> = {
+  "chainlink-runtime-environment-cre-2nh0": "/writings/chainlink-runtime-environment-cre-2nh0.html",
+  "ccip-end-to-end-tracing-one-cross-chain-message-from-the-first-function-call-to-the-final-receipt-3egk": "/writings/ccip-end-to-end-tracing-one-cross-chain-message-from-the-first-function-call-to-the-final-receipt-3egk.html",
+  "ccip-quarterly-volume-hit-49b-up-353-year-over-year-heres-the-rate-limiting-architecture-that-b76": "/writings/ccip-quarterly-volume-hit-49b-up-353-year-over-year-heres-the-rate-limiting-architecture-that-b76.html",
+  "ccip-has-three-ways-to-move-tokens-cross-chain-choosing-the-wrong-one-is-an-audit-finding-164": "/writings/ccip-has-three-ways-to-move-tokens-cross-chain-choosing-the-wrong-one-is-an-audit-finding-164.html",
+  "ccip-doesnt-run-two-dons-anymore-heres-what-v16-actually-changed-63a": "/writings/ccip-doesnt-run-two-dons-anymore-heres-what-v16-actually-changed-63a.html",
   "five-chainlink-products-one-architecture-the-donocr-pattern-underneath-everything-597a": "/writings/five-chainlink-products-one-architecture-the-donocr-pattern-underneath-everything-597a.html",
   "i-asked-in-a-chainlink-discord-is-chainlink-building-any-ai-the-answer-sent-me-down-a-rabbit-5b7j": "/writings/i-asked-in-a-chainlink-discord-is-chainlink-building-any-ai-the-answer-sent-me-down-a-rabbit-5b7j.html",
   "ccips-router-pattern-why-a-single-immutable-contract-per-chain-is-the-entire-security-bet-14ba": "/writings/ccips-router-pattern-why-a-single-immutable-contract-per-chain-is-the-entire-security-bet-14ba.html",

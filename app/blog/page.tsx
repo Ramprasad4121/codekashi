@@ -9,6 +9,36 @@ export const metadata = {
 
 const posts = [
 {
+  "title": "Chainlink Runtime Environment (CRE)",
+  "slug": "chainlink-runtime-environment-cre-2nh0",
+  "url": "/writings/chainlink-runtime-environment-cre-2nh0.html",
+  "date": "2026-08-04T13:32:58Z"
+},
+{
+  "title": "CCIP End-to-End: Tracing One Cross-Chain Message From the First Function Call to the Final Receipt",
+  "slug": "ccip-end-to-end-tracing-one-cross-chain-message-from-the-first-function-call-to-the-final-receipt-3egk",
+  "url": "/writings/ccip-end-to-end-tracing-one-cross-chain-message-from-the-first-function-call-to-the-final-receipt-3egk.html",
+  "date": "2026-08-03T13:24:47Z"
+},
+{
+  "title": "CCIP Quarterly Volume Hit $4.9B, Up 353% Year-Over-Year. Here's the Rate Limiting Architecture That Makes That Scale Safe.",
+  "slug": "ccip-quarterly-volume-hit-49b-up-353-year-over-year-heres-the-rate-limiting-architecture-that-b76",
+  "url": "/writings/ccip-quarterly-volume-hit-49b-up-353-year-over-year-heres-the-rate-limiting-architecture-that-b76.html",
+  "date": "2026-07-28T13:26:33Z"
+},
+{
+  "title": "CCIP Has Three Ways to Move Tokens Cross-Chain. Choosing the Wrong One Is an Audit Finding.",
+  "slug": "ccip-has-three-ways-to-move-tokens-cross-chain-choosing-the-wrong-one-is-an-audit-finding-164",
+  "url": "/writings/ccip-has-three-ways-to-move-tokens-cross-chain-choosing-the-wrong-one-is-an-audit-finding-164.html",
+  "date": "2026-07-22T13:59:21Z"
+},
+{
+  "title": "CCIP Doesn't Run Two DONs Anymore. Here's What v1.6 Actually Changed.",
+  "slug": "ccip-doesnt-run-two-dons-anymore-heres-what-v16-actually-changed-63a",
+  "url": "/writings/ccip-doesnt-run-two-dons-anymore-heres-what-v16-actually-changed-63a.html",
+  "date": "2026-07-21T10:12:29Z"
+},
+{
   "title": "Five Chainlink Products. One Architecture. The DON+OCR Pattern Underneath Everything.",
   "slug": "five-chainlink-products-one-architecture-the-donocr-pattern-underneath-everything-597a",
   "url": "/writings/five-chainlink-products-one-architecture-the-donocr-pattern-underneath-everything-597a.html",

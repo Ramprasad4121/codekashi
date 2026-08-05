@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CCIP End-to-End: Tracing One Cross-Chain Message From the First Function Call to the Final Receipt</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      line-height: 1.8;
+      color: #e4e4e7;
+      background-color: #09090b;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+      font-size: 1.1rem;
+    }
+    h1, h2, h3, h4 { color: #ffffff; margin-top: 2rem; margin-bottom: 1rem; }
+    h1 { font-size: 2.25rem; font-weight: 700; line-height: 1.2; }
+    h2 { font-size: 1.8rem; }
+    h3 { font-size: 1.5rem; }
+    a { color: #60a5fa; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    p { margin-bottom: 1.5rem; }
+    img { max-width: 100%; height: auto; border-radius: 0.5rem; margin: 2rem 0; }
+    pre { background: #18181b; padding: 1.5rem; border-radius: 0.5rem; overflow-x: auto; font-family: monospace; }
+    code { background: #18181b; padding: 0.2rem 0.4rem; border-radius: 0.25rem; font-family: monospace; font-size: 0.9em; }
+    blockquote { border-left: 4px solid #3f3f46; margin: 0; padding-left: 1rem; color: #a1a1aa; font-style: italic; }
+    figure { margin: 2rem 0; }
+    figcaption { text-align: center; color: #a1a1aa; font-size: 0.9rem; margin-top: 0.5rem; }
+  </style>
+</head>
+<body>
+  <h1>CCIP End-to-End: Tracing One Cross-Chain Message From the First Function Call to the Final Receipt</h1>
+  <h2>
+  <a name="why-this-article-exists" href="#why-this-article-exists">
+  </a>
+  Why this article exists
+</h2>
+
+<p>Days 12 through 20 of this series covered CCIP in pieces: the onchain components, the offchain Role DON and OCR plugins, the token transfer mechanisms, the CCT standard, and rate limiting with institutional deployments. Each article explained one layer. None of them traced a single message all the way through from start to finish.</p>
+
+<p>This is the article that does that.</p>
+
+<p>One concrete example: a sender on Ethereum wants to send 1,000 USDC and a message payload to a receiver contract on Arbitrum. We'll trace every step from the sender calling <code>Router.ccipSend()</code> to the receiver's <code>ccipReceive()</code> being called on Arbitrum. Every contract that touches the message is named. Every event emitted is named. Every offchain component is identified at the moment it acts.</p>
+
+<p>This is day 21 of the 28-day Chainlink architecture series. If you've read days 12 through 20, you already know each component. Today you see how they fit together.</p>
+
+<p><a href="https://media2.dev.to/dynamic/image/width=800%2Cheight=%2Cfit=scale-down%2Cgravity=auto%2Cformat=auto/https%3A%2F%2Fdev-to-uploads.s3.us-east-2.amazonaws.com%2Fuploads%2Farticles%2Falmfxqhz7xz7fjsbh0se.png" class="article-body-image-wrapper"><img src="https://media2.dev.to/dynamic/image/width=800%2Cheight=%2Cfit=scale-down%2Cgravity=auto%2Cformat=auto/https%3A%2F%2Fdev-to-uploads.s3.us-east-2.amazonaws.com%2Fuploads%2Farticles%2Falmfxqhz7xz7fjsbh0se.png" alt="chainlink on-chain architechture " loading="lazy" width="800" height="423"></a></p>
+
+<h2>
+  <a name="the-setup" href="#the-setup">
+  </a>
+  The setup
+</h2>
+
+<p><strong>Source chain:</strong> Ethereum mainnet<br>
+<strong>Destination chain:</strong> Arbitrum One<br>
+<strong>Payload:</strong> 1,000 USDC + arbitrary bytes message data<br>
+<strong>Sender:</strong> a smart contract that has already computed the message and approved USDC spending<br>
+<strong>Receiver:</strong> a contract on Arbitrum that implements <code>ccipReceive()</code></p>
+
+<p>Before the sender calls <code>ccipSend()</code>, one prerequisite: the fee. The sender calls <code>Router.getFee(destinationChainSelector, message)</code>. Internally, the Router delegates this to the OnRamp, which calls the FeeQuoter. The FeeQuoter prices the fee based on destination gas limit, message size, token count, current gas prices on the destination chain, and the current LINK/ETH exchange rate. It returns a fee in the sender's chosen fee token (either LINK or ETH). The sender must have approved the Router to spend this fee amount before calling <code>ccipSend()</code>.</p>
+
+<h2>
+  <a name="phase-1-source-chain-from-sender-to-ccipmessagesent" href="#phase-1-source-chain-from-sender-to-ccipmessagesent">
+  </a>
+  Phase 1: Source chain — from sender to CCIPMessageSent
+</h2>
+
+<p><a href="https://media2.dev.to/dynamic/image/width=800%2Cheight=%2Cfit=scale-down%2Cgravity=auto%2Cformat=auto/https%3A%2F%2Fdev-to-uploads.s3.us-east-2.amazonaws.com%2Fuploads%2Farticles%2Fz6hniabgclxks7rbd7pq.png" class="article-body-image-wrapper"><img src="https://media2.dev.to/dynamic/image/width=800%2Cheight=%2Cfit=scale-down%2Cgravity=auto%2Cformat=auto/https%3A%2F%2Fdev-to-uploads.s3.us-east-2.amazonaws.com%2Fuploads%2Farticles%2Fz6hniabgclxks7rbd7pq.png" alt=" " loading="lazy" width="800" height="316"></a></p>
+
+<p><strong>Step 1: Sender calls <code>Router.ccipSend(destinationChainSelector, message)</code></strong></p>
+
+<p>The Router is the only stable address in the system. It's the single immutable user-facing entry point on Ethereum. The Router:</p>
+
+<ul>
+<li>Looks up the correct OnRamp for the Ethereum → Arbitrum lane</li>
+<li>Calls <code>isCursed()</code> on the RMNRemote contract. If Ethereum or Arbitrum is currently cursed, this reverts immediately before anything else happens</li>
+<li>Validates that the destination chain selector exists in its routing table</li>
+<li>Collects the fee from the sender</li>
+</ul>
+
+<p><strong>Step 2: Router forwards to OnRamp</strong></p>
+
+<p>The Router passes the message to the OnRamp for the Ethereum → Arbitrum lane. The OnRamp:</p>
+
+<ul>
+<li>Validates message parameters: token count (max 10), gas limit, data payload length</li>
+<li>Calls <code>isCursed()</code> on RMNRemote again (separate check at the OnRamp level)</li>
+<li>Checks the sender allowlist if one is configured for this lane</li>
+<li>Calls the FeeQuoter to finalize the fee calculation</li>
+<li>For the 1,000 USDC: looks up the USDC Token Pool address from the Token Admin Registry and calls <code>TokenPool.lockOrBurn()</code>. Since USDC on Ethereum uses Lock-and-Mint for the Arbitrum lane, the USDC is locked in the Token Pool vault. The Token Pool checks the outbound rate limit bucket before allowing the lock.</li>
+<li>Assigns a sequence number to this message (the last used sequence number incremented by 1)</li>
+<li>Generates a unique <code>messageId</code> (a bytes32 hash of the message content and metadata)</li>
+</ul>
+
+<p><strong>Step 3: OnRamp emits <code>CCIPMessageSent</code></strong></p>
+
+<p>The OnRamp emits <code>CCIPMessageSent</code> containing:</p>
+
+<ul>
+<li>
+<code>messageId</code>: the unique identifier for this specific message</li>
+<li>
+<code>sequenceNumber</code>: this message's position in the lane's ordered sequence</li>
+<li>
+<code>sourceChainSelector</code>: Ethereum</li>
+<li>
+<code>destChainSelector</code>: Arbitrum</li>
+<li>
+<code>sender</code>: the address that called <code>ccipSend()</code>
+</li>
+<li>
+<code>receiver</code>: the Arbitrum contract address</li>
+<li>The full encoded message (data + token amounts + gas limit)</li>
+</ul>
+
+<p>This event is now permanently on-chain on Ethereum. The transaction is complete from the sender's perspective. The sender's USDC is locked. The fee is paid. The message is recorded. The sender cannot cancel or modify what happens next.</p>
+
+<h2>
+  <a name="phase-2-offchain-commit-don-builds-and-submits-the-merkle-root" href="#phase-2-offchain-commit-don-builds-and-submits-the-merkle-root">
+  </a>
+  Phase 2: Offchain — Commit DON builds and submits the Merkle root
+</h2>
+
+<p><strong>Step 4: Commit OCR plugin detects the event</strong></p>
+
+<p><a href="https://media2.dev.to/dynamic/image/width=800%2Cheight=%2Cfit=scale-down%2Cgravity=auto%2Cformat=auto/https%3A%2F%2Fdev-to-uploads.s3.us-east-2.amazonaws.com%2Fuploads%2Farticles%2Fff5lfi2co5lkb1udpmtg.png" class="article-body-image-wrapper"><img src="https://media2.dev.to/dynamic/image/width=800%2Cheight=%2Cfit=scale-down%2Cgravity=auto%2Cformat=auto/https%3A%2F%2Fdev-to-uploads.s3.us-east-2.amazonaws.com%2Fuploads%2Farticles%2Fff5lfi2co5lkb1udpmtg.png" alt=" " loading="lazy" width="800" height="308"></a></p>
+
+<p>The Role DON's nodes running the Commit OCR plugin are continuously monitoring Ethereum's OnRamp for <code>CCIPMessageSent</code> events. Each node independently observes the event and records:</p>
+
+<ul>
+<li>The message's sequence number</li>
+<li>The full message contents (to compute the Merkle tree)</li>
+</ul>
+
+<p>The Commit plugin uses OCR3's three-round structure:</p>
+
+<p>Round 1 — Observation: Each node calls <code>LatestMsgSeqNum()</code> on the source OnRamp and <code>GetExpectedNextSequenceNumber()</code> on the destination OffRamp to determine the range of new messages to include in the next commit report. Our message's sequence number falls in this range.</p>
+
+<p>Round 2 — Merkle construction: The <code>merkleroot.Processor</code> reads the full message data for all messages in the batch (our message may be batched with other messages on the same lane). It computes a Merkle tree over the batch and produces a Merkle root. Because this is an EVM-to-EVM lane that requires RMN signatures (the blessed chain configuration), the <code>rmn.Controller</code> requests RMN blessing signatures from the Risk Management Network nodes for this Merkle root. The RMN nodes independently verify the Merkle root matches the source chain events, then sign.</p>
+
+<p><a href="https://media2.dev.to/dynamic/image/width=800%2Cheight=%2Cfit=scale-down%2Cgravity=auto%2Cformat=auto/https%3A%2F%2Fdev-to-uploads.s3.us-east-2.amazonaws.com%2Fuploads%2Farticles%2Fw42afjccymbjjm0kx0d0.png" class="article-body-image-wrapper"><img src="https://media2.dev.to/dynamic/image/width=800%2Cheight=%2Cfit=scale-down%2Cgravity=auto%2Cformat=auto/https%3A%2F%2Fdev-to-uploads.s3.us-east-2.amazonaws.com%2Fuploads%2Farticles%2Fw42afjccymbjjm0kx0d0.png" alt=" " loading="lazy" width="800" height="402"></a></p>
+
+<p>Round 3 — OCR consensus and transmission: The Commit DON reaches OCR3 consensus on the Commit Report, which contains:</p>
+
+<ul>
+<li>The Merkle root of the batch of messages</li>
+<li>The sequence number range covered</li>
+<li>RMN blessing signatures (where required)</li>
+<li>Price updates for fee tokens (LINK/ETH/USDC price data for the destination FeeQuoter)</li>
+</ul>
+
+<p>One node, selected by the randomized OCR3 transmission schedule, submits this Commit Report to the destination chain.</p>
+
+<p>How long does this take? The Commit DON waits for the configured number of source-chain block confirmations before committing. For Ethereum mainnet as the source chain, this is typically 64 block confirmations, roughly 13 minutes, to protect against chain reorganizations. The message has been on Ethereum for those 13 minutes before the Commit DON acts.</p>
+
+<h2>
+  <a name="phase-3-destination-chain-commit-report-accepted" href="#phase-3-destination-chain-commit-report-accepted">
+  </a>
+  Phase 3: Destination chain — Commit Report accepted
+</h2>
+
+<p><strong>Step 5: OffRamp processes the Commit Report</strong></p>
+
+<p>On Arbitrum, the OffRamp receives the Commit Report from the Commit DON transmitter. The OffRamp:</p>
+
+<ul>
+<li>Validates the quorum of OCR signatures on the report (this is the on-chain trust verification: the OffRamp doesn't trust whoever submitted the transaction, it trusts that enough independent signers agreed on this exact payload)</li>
+<li>Calls <code>isCursed()</code> on Arbitrum's RMNRemote contract</li>
+<li>Stores the Merkle root in contract storage, keyed by the source chain selector and sequence number range</li>
+<li>Processes any price updates included in the report (updates the FeeQuoter on Arbitrum with current token prices)</li>
+</ul>
+
+<p><strong>Step 6: OffRamp emits <code>CommitReportAccepted</code></strong></p>
+
+<p>This event confirms that a valid commit has been accepted. At this point, the message's existence on Ethereum has been attested to by a quorum of the Role DON and recorded on Arbitrum. The tokens are still locked on Ethereum. The receiver hasn't been called yet.</p>
+
+<h2>
+  <a name="phase-4-offchain-execute-don-prepares-execution" href="#phase-4-offchain-execute-don-prepares-execution">
+  </a>
+  Phase 4: Offchain — Execute DON prepares execution
+</h2>
+
+<p><strong>Step 7: Execute OCR plugin detects <code>CommitReportAccepted</code></strong></p>
+
+<p>The Role DON's nodes running the Execute OCR plugin monitor the Arbitrum OffRamp for <code>CommitReportAccepted</code> events. When they detect our commit report, they identify pending messages in that commit:</p>
+
+<p>Round 1: <code>execute.Plugin</code> calls <code>CommitReportsGTETimestamp()</code> on the OffRamp to find unexecuted commit reports.</p>
+
+<p>Round 2: The Execute DON reads the full message data from the source Ethereum OnRamp via <code>MsgsBetweenSeqNums()</code>, independently verifying the message contents. It computes a Merkle proof for our specific message against the committed Merkle root. It verifies this proof matches. It checks that our message hasn't already been executed (preventing double execution). It calculates whether the gas limit we specified is sufficient for execution.</p>
+
+<p>Round 3: The Execute DON reaches OCR3 consensus on an Execute Report containing the message and its Merkle proof, then one node transmits it to the Arbitrum OffRamp.</p>
+
+<p><strong>Note:</strong> the Execute OCR plugin runs without signature verification (unlike the Commit plugin). The security comes from the Merkle proof verification on-chain, not from OCR signature verification at the execution stage.</p>
+
+<h2>
+  <a name="phase-5-destination-chain-execution" href="#phase-5-destination-chain-execution">
+  </a>
+  Phase 5: Destination chain — execution
+</h2>
+
+<p><strong>Step 8: OffRamp executes the message</strong></p>
+
+<p>The Arbitrum OffRamp receives the Execute Report. It:</p>
+
+<ul>
+<li>Validates the Merkle proof for our specific message against the stored Merkle root. If the proof doesn't match, execution reverts</li>
+<li>Calls <code>isCursed()</code> on Arbitrum's RMNRemote</li>
+<li>Checks that this exact message ID hasn't been executed before (replay protection)</li>
+</ul>
+
+<p><strong>For the 1,000 USDC:</strong></p>
+
+<ul>
+<li>Looks up the USDC Token Pool address on Arbitrum from the Token Admin Registry</li>
+<li>Calls <code>TokenPool.releaseOrMint()</code> on the Arbitrum USDC pool</li>
+<li>The Token Pool checks the inbound rate limit bucket before allowing the mint</li>
+<li>Since this is Lock-and-Mint for this lane: the Arbitrum USDC pool mints 1,000 USDC to the receiver address</li>
+</ul>
+
+<p><strong>For the arbitrary message data:</strong></p>
+
+<ul>
+<li>The OffRamp calls the Router to deliver the CCIP message to the receiver</li>
+<li>The Router calls <code>receiver.ccipReceive(message)</code> with the full <code>Client.Any2EVMMessage</code> struct containing the message ID, source chain, sender address, data payload, and token amounts</li>
+</ul>
+
+<p><strong>Step 9: OffRamp emits <code>ExecutionStateChanged</code></strong></p>
+
+<p>The final event. Status is either <code>Success</code> or <code>Failure</code>.</p>
+
+<ul>
+<li>
+<code>Success</code>: <code>ccipReceive()</code> executed without reverting, 1,000 USDC arrived, message data was delivered</li>
+<li>
+<code>Failure</code>: <code>ccipReceive()</code> reverted (insufficient gas limit, logic error in receiver, receiver not implementing the interface correctly)</li>
+</ul>
+
+<p>If <code>Failure</code>: the message is not lost. The <code>permissionLessExecutionThresholdSeconds</code> is a configured waiting period after which anyone can re-execute the failed message without DON involvement. Manual execution provides the Merkle proof directly to the OffRamp's <code>manuallyExecute()</code> function with a higher gas limit.</p>
+
+<h2>
+  <a name="the-complete-timeline" href="#the-complete-timeline">
+  </a>
+  The complete timeline
+</h2>
+
+<div class="table-wrapper-paragraph"><table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Chain</th>
+<th>What happens</th>
+<th>Time from Step 1</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1-3</td>
+<td>Ethereum</td>
+<td>Sender calls ccipSend, OnRamp locks USDC, CCIPMessageSent emitted</td>
+<td>~30 seconds (1-2 blocks)</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Offchain</td>
+<td>Commit DON waits for 64 block confirmations</td>
+<td>~13 minutes</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Offchain</td>
+<td>Commit DON builds Merkle root, reaches OCR consensus</td>
+<td>~1-2 minutes</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Arbitrum</td>
+<td>OffRamp records Commit Report, CommitReportAccepted emitted</td>
+<td>~30 seconds</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Offchain</td>
+<td>Execute DON reads message, computes proof, reaches consensus</td>
+<td>~1-2 minutes</td>
+</tr>
+<tr>
+<td>8-9</td>
+<td>Arbitrum</td>
+<td>OffRamp executes, USDC minted, ccipReceive called, ExecutionStateChanged emitted</td>
+<td>~30 seconds</td>
+</tr>
+<tr>
+<td><strong>Total</strong></td>
+<td></td>
+<td><strong>~17-20 minutes for Ethereum → Arbitrum</strong></td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+
+<p>This timeline is dominated by the 64-block finality requirement on Ethereum. L2-to-L2 messages (Arbitrum to Base, for example) are significantly faster because L2 finality is measured in seconds rather than minutes.</p>
+
+<h2>
+  <a name="what-to-trace-when-something-goes-wrong" href="#what-to-trace-when-something-goes-wrong">
+  </a>
+  What to trace when something goes wrong
+</h2>
+
+<p>If you're debugging a CCIP message that didn't arrive, the trace gives you the exact places to check in order:</p>
+
+<ol>
+<li>Did <code>CCIPMessageSent</code> emit on the source chain? If not, the transaction reverted before the OnRamp. Check the sender's fee approval and token allowance.</li>
+<li>Did <code>CommitReportAccepted</code> emit on the destination chain? If not, the Commit DON hasn't processed the message yet. Check the source chain block confirmations — it may still be within the finality window.</li>
+<li>Did <code>ExecutionStateChanged</code> emit? If not, the Execute DON hasn't transmitted yet. Check the time elapsed since commit — if it has been more than a few minutes, check whether <code>permissionLessExecutionThresholdSeconds</code> has passed and consider manual execution.</li>
+<li>Did <code>ExecutionStateChanged</code> emit with <code>Failure</code>? Check the receiver contract's <code>ccipReceive</code> implementation and verify the gas limit set at send time is sufficient.</li>
+</ol>
+
+
+<hr>
+
+<p><em>I'm a smart contract security researcher writing through Chainlink's full architecture for 28 days. Follow along at <a href="https://www.ramprasadgoud.dev/#writing" target="_blank" rel="noopener noreferrer">ramprasadgoud.dev</a> or on X <a href="https://x.com/0xramprasad" target="_blank" rel="noopener noreferrer">@0xramprasad</a>.</em></p>
+
+
+</body>
+</html>
