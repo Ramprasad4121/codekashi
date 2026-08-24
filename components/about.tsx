@@ -12,7 +12,7 @@ export default function About() {
     {
       company: 'Chainlink',
       url: 'https://chain.link/enthusiasts',
-      role: 'Community Enthusiast'
+      role: 'Community Advocate'
     }
   ]
 
@@ -76,8 +76,26 @@ export default function About() {
               
               <div className="space-y-6 text-base sm:text-lg leading-[1.8] text-zinc-400 text-justify">
                 <p>
-                  I&apos;m a certified smart contract security researcher by RektOff x Solana Foundation and computer science graduate (2022–2026) working as a smart contract security researcher and Rust/Solidity engineer across EVM and Solana, and a Chainlink Community Enthusiast. So far I have done seven private audits, including a Critical fake-oracle vulnerability in a Solana lending protocol, and I hold a certification from the RektOff × Solana Foundation Rust Security Bootcamp. Right now I&apos;m auditing the chainlink-evm repo and building ARGUS, an open-source multi-agent platform that runs the full smart contract audit lifecycle, because I think security tooling needs to be as good as the attackers it&apos;s up against. I care about staying at the intersection of security and AI agent development rather than picking one and leaving the other behind.
+                  I&apos;m a certified smart contract security researcher by RektOff x Solana Foundation and computer science graduate (2022–2026) working as a smart contract security researcher and Rust/Solidity engineer across EVM and Solana, and a Chainlink Community Advocate. So far I have done seven private audits, including a Critical fake-oracle vulnerability in a Solana lending protocol, and I hold a certification from the RektOff × Solana Foundation Rust Security Bootcamp. Right now I&apos;m auditing the chainlink-evm repo and building ARGUS, an open-source multi-agent platform that runs the full smart contract audit lifecycle, because I think security tooling needs to be as good as the attackers it&apos;s up against. I care about staying at the intersection of security and AI agent development rather than picking one and leaving the other behind.
                 </p>
+                
+                <div className="pt-4 flex">
+                  <a 
+                    href="/resume.pdf"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-3 px-6 py-3 rounded-md border border-zinc-800/80 bg-[#0a0a0a] hover:bg-[#111111] hover:border-[var(--accent-rust)] hover:text-white transition-all text-xs font-mono uppercase tracking-[0.15em] text-zinc-300 group shadow-sm"
+                  >
+                    View Resume
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-500 group-hover:text-[var(--accent-rust)] transition-colors">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                      <polyline points="14 2 14 8 20 8" />
+                      <line x1="16" y1="13" x2="8" y2="13" />
+                      <line x1="16" y1="17" x2="8" y2="17" />
+                      <polyline points="10 9 9 9 8 9" />
+                    </svg>
+                  </a>
+                </div>
               </div>
             </motion.div>
 

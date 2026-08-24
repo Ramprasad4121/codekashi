@@ -9,6 +9,7 @@ const links = [
   { label: 'Projects', href: '/#projects' },
   { label: 'Audits', href: '/#audits' },
   { label: 'Writing', href: '/blog' },
+  { label: 'Resume', href: '/resume.pdf' },
   { label: 'Book Audit', href: '/#book-audit' },
   { label: 'Contact', href: '/#connect' },
 ]
@@ -52,15 +53,31 @@ export default function Nav() {
             pastHero ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2 pointer-events-none'
           }`}
         >
-          {links.map((link) => (
-            <Link
-              key={link.label}
-              href={link.href}
-              className="text-[13px] font-mono text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors duration-200"
-            >
-              {link.label}
-            </Link>
-          ))}
+          {links.map((link) => {
+            const isExternal = link.href.endsWith('.pdf') || link.href.startsWith('http');
+            if (isExternal) {
+              return (
+                <a
+                  key={link.label}
+                  href={link.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[13px] font-mono text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors duration-200"
+                >
+                  {link.label}
+                </a>
+              )
+            }
+            return (
+              <Link
+                key={link.label}
+                href={link.href}
+                className="text-[13px] font-mono text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors duration-200"
+              >
+                {link.label}
+              </Link>
+            )
+          })}
         </div>
 
         {/* Mobile hamburger */}
@@ -83,16 +100,33 @@ export default function Nav() {
           className="sm:hidden border-t border-white/[0.03] bg-[#050505]/95 backdrop-blur-xl"
         >
           <div className="max-w-6xl mx-auto px-8 py-6 flex flex-col gap-5">
-            {links.map((link) => (
-              <Link
-                key={link.label}
-                href={link.href}
-                onClick={() => setMobileOpen(false)}
-                className="text-sm font-mono text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors"
-              >
-                {link.label}
-              </Link>
-            ))}
+            {links.map((link) => {
+              const isExternal = link.href.endsWith('.pdf') || link.href.startsWith('http');
+              if (isExternal) {
+                return (
+                  <a
+                    key={link.label}
+                    href={link.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => setMobileOpen(false)}
+                    className="text-sm font-mono text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors"
+                  >
+                    {link.label}
+                  </a>
+                )
+              }
+              return (
+                <Link
+                  key={link.label}
+                  href={link.href}
+                  onClick={() => setMobileOpen(false)}
+                  className="text-sm font-mono text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors"
+                >
+                  {link.label}
+                </Link>
+              )
+            })}
           </div>
         </motion.div>
       )}

@@ -4,26 +4,46 @@ import { motion } from 'framer-motion'
 
 const projects = [
   {
-    name: 'SRP',
-    description: 'Security Reasoning Protocol (SRP) is an AI-native Web3 security operating system for EVM and Solana protocols. It is designed around evidence-first security workflows: intent extraction, vulnerability discovery, adversarial debate, exploit validation, runtime monitoring, and audit-grade reporting.',
-    tags: ['TypeScript', 'AI', 'security', 'smart-contracts'],
-    link: 'https://github.com/Ramprasad4121/srp',
-    
+    name: 'CCIP Rebase Token',
+    description: 'Built a cross-chain rebase token with Chainlink CCIP, elastic supply mechanics, cross-chain messaging, Foundry tests, and Sepolia deployment workflows.',
+    tags: ['Solidity', 'Chainlink CCIP', 'Cross-chain', 'Foundry'],
+    link: 'https://github.com/Ramprasad4121/ccip-rebase-token',
   },
-  
   {
-    name: 'Anchor Sentinel',
-    description: 'Anchor-Sentinel is a static analysis framework for Solana & Anchor programs written in Rust. It runs a suite of vulnerability detectors to identify critical security flaws, prints detailed audit reports, and—unlike traditional tools—automatically generates executable Proof-of-Concept (POC) exploits. Anchor-Sentinel enables developers to find vulnerabilities, understand attack vectors through generated code, and verify fixes instantly',
-    tags: ['Solidity', 'security', 'sentinel', 'DeFi'],
+    name: 'DeFi Stable Coin',
+    description: 'Built an over-collateralized stablecoin system with WETH collateral, mint/burn flows, liquidation mechanics, Foundry unit/fuzz testing, and Slither analysis.',
+    tags: ['Solidity', 'DeFi', 'Foundry', 'Slither'],
+    link: 'https://github.com/Ramprasad4121/defi-stable-coin',
+  },
+  {
+    name: 'Anchor-Sentinel',
+    description: 'Built a Rust static analyzer for Solana/Anchor programs with 20+ security detectors, severity filtering, version-diff scanning, CI integration, and executable exploit PoC generation.',
+    tags: ['Rust', 'Solana', 'Anchor', 'Security'],
     link: 'https://github.com/Ramprasad4121/anchor-sentinel',
-    
   },
-
   {
-    name: 'BAL Daemon',
-    description: 'A Rust daemon that generates BEP-592 Block-Level Access List payloads for BSC block builders..',
-    tags: ['Rust', 'DeFi', 'monitoring', 'balancer'],
-    link: 'https://github.com/Ramprasad4121/bal-daemon',
+    name: 'Account Abstraction',
+    description: 'Built smart-wallet flows using an EVM account-abstraction model with an alt-mempool implementation, plus native zkSync account abstraction via IAccount; tested deployments on Arbitrum and zkSync.',
+    tags: ['EVM', 'zkSync', 'Arbitrum', 'Account Abstraction'],
+    link: 'https://github.com/Ramprasad4121/account-abstraction',
+  },
+  {
+    name: 'Session Policy Wallet',
+    description: 'Built an on-chain policy layer for restricted session keys with spend limits and contract allowlists; deployed and tested the fail-closed policy validator on Monad Testnet.',
+    tags: ['EVM', 'Monad', 'Smart Wallets'],
+    link: 'https://github.com/Ramprasad4121/session-policy-wallet',
+  },
+  {
+    name: 'Merkle Airdrop & NFT Raffle',
+    description: 'Merkle Airdrop with Ethereum/zkSync support and proof generation; NFT Marketplace with ERC-721/1155 assets and Chainlink VRF-backed raffle mechanics.',
+    tags: ['EVM', 'zkSync', 'Chainlink VRF', 'NFTs'],
+    link: 'https://github.com/Ramprasad4121/merkle-airdrop',
+  },
+  {
+    name: 'Governance DAO',
+    description: 'Built a governance DAO using OpenZeppelin Governor and ERC-20 voting tokens, with proposal creation, token delegation, quorum, timelocked execution, and Sepolia deployment. Developed and tested the contracts with Foundry.',
+    tags: ['Solidity', 'OpenZeppelin', 'Governance', 'Foundry'],
+    link: 'https://github.com/Ramprasad4121/dao',
   },
 ]
 
