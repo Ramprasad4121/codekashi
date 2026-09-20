@@ -18,6 +18,12 @@ export default function About() {
 
   const certifications = [
     {
+      title: 'ETHOnline 2026',
+      issuer: 'ETHGlobal',
+      type: 'Certificate of Participation',
+      url: '/ethonline-2026.pdf'
+    },
+    {
       title: 'Rust Security Bootcamp',
       issuer: 'RektOff × Solana Foundation',
       type: 'Certificate',
