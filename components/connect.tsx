@@ -6,7 +6,7 @@ const socials = [
   { label: 'Twitter', handle: '@0xramprasad', href: 'https://twitter.com/0xramprasad' },
   { label: 'GitHub', handle: 'Ramprasad4121', href: 'https://github.com/Ramprasad4121' },
   { label: 'Email', handle: 'ramprasadgoud34@gmail.com', href: 'mailto:ramprasadgoud34@gmail.com' },
-  { label: 'Calendar', handle: 'Book a call', href: 'https://calendar.google.com/calendar/u/0/appointments/schedules/AcZssZ0bLjva2yB2bbE1QPkxNDDDkkQ8pywwKnjxU7ngpWfZy66Po5vsf_4EeElISlEH49Tk_pAXoske' },
+  { label: 'Calendar', handle: 'Book a call', href: 'https://calendly.com/ramprasadedigi/30min' },
 ]
 
 export default function Connect() {
