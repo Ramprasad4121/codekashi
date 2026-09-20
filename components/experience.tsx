@@ -4,6 +4,12 @@ import { motion } from 'framer-motion'
 
 const experiences = [
   {
+    company: 'Chainlink Labs',
+    role: 'Advocate',
+    duration: 'April 2026 - Present',
+    description: 'Technical community advocate focused on Chainlink oracles, CRE, and agent safe integrations. I explain how official Data Feed fields work in production and publish open source tooling so agents fail closed on stale prices.'
+  },
+  {
     company: 'CHI',
     role: 'ML Intern',
     duration: '8 weeks',
