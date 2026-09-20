@@ -48,19 +48,11 @@ export default function About() {
             whileInView={{ opacity: 1, filter: 'blur(0px)' }}
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.8 }}
-            className="relative w-48 sm:w-64 md:w-full aspect-square mx-auto md:mx-0"
+            className="relative w-48 sm:w-64 md:w-full aspect-square mx-auto md:mx-0 md:mt-16"
           >
-             <div className="relative w-full h-full grayscale contrast-150 brightness-[0.8] mix-blend-luminosity">
-               {/* Dither / Halftone Overlay */}
-               <div 
-                 className="absolute inset-0 z-10 pointer-events-none mix-blend-overlay opacity-60" 
-                 style={{ 
-                   backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 4 4\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Ccircle cx=\'2\' cy=\'2\' r=\'1\' fill=\'white\'/%3E%3C/svg%3E")', 
-                   backgroundSize: '4px 4px' 
-                 }} 
-               />
+             <div className="relative w-full h-full rounded-2xl overflow-hidden shadow-[0_0_40px_rgba(232,98,44,0.1)] border border-zinc-800/60">
                <Image
-                  src="/Ramprasad.png"
+                  src="/Ramprasad2.jpg"
                   alt="Ramprasad"
                   fill
                   className="object-cover"
