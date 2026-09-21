@@ -21,7 +21,7 @@ export const metadata: Metadata = {
     title: 'Ramprasad — Security Researcher & Smart Contract Auditor',
     description:
       'Security researcher and smart contract auditor. Building ARGUS. Winner of $25K BNB Chain grant.',
-    url: 'https://ramprasad.dev',
+    url: 'https://www.ramprasadgoud.dev',
     siteName: 'Ramprasad',
     images: [{ url: '/og-image.png', width: 1200, height: 630 }],
     type: 'website',
@@ -32,7 +32,7 @@ export const metadata: Metadata = {
     description: 'Security researcher and smart contract auditor.',
     creator: '@0xramprasad',
   },
-  metadataBase: new URL('https://ramprasad.dev'),
+  metadataBase: new URL('https://www.ramprasadgoud.dev'),
 }
 
 export default function RootLayout({
