@@ -9,7 +9,7 @@ const audits = [
   { name: 'BossBridge', slug: 'bossbridge', findings: { C: 0, H: 4, M: 1, L: 1 } },
   { name: 'Tswap', slug: 'tswap', findings: { C: 0, H: 4, M: 2, L: 2 } },
   { name: 'PuppyRaffle', slug: 'puppyraffle', findings: { C: 0, H: 4, M: 3, L: 0 } },
-  { name: 'PasswordStore', slug: 'passwordstore', findings: { C: 0, H: 2, M: 0, L: 0 } },
+  { name: 'PasswordStore', slug: 'passwordstore', findings: { C: 0, H: 2, M: 0, L: 1 } },
 ]
 
 function Badge({ label, count, colorClass }: { label: string; count: number; colorClass: string }) {
