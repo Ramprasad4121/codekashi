@@ -14,13 +14,13 @@ const dmSerifDisplay = DM_Serif_Display({
 })
 
 export const metadata: Metadata = {
-  title: 'Ramprasad — Security Researcher & Smart Contract Auditor',
+  title: 'Ramprasad | Security Researcher & Smart Contract Auditor',
   description:
-    'Security researcher and smart contract auditor. Building ARGUS. Winner of $25K BNB Chain grant. 7 protocol audits completed.',
+    'Smart contract security researcher across EVM and Solana. Solana Foundation certified. 7 audits completed. Building Anchor-Sentinel.',
   openGraph: {
-    title: 'Ramprasad — Security Researcher & Smart Contract Auditor',
+    title: 'Ramprasad | Security Researcher & Smart Contract Auditor',
     description:
-      'Security researcher and smart contract auditor. Building ARGUS. Winner of $25K BNB Chain grant.',
+      'Smart contract security researcher across EVM and Solana. Solana Foundation certified. 7 audits completed.',
     url: 'https://ramprasad.dev',
     siteName: 'Ramprasad',
     images: [{ url: '/og-image.png', width: 1200, height: 630 }],
@@ -28,7 +28,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Ramprasad — Security Researcher',
+    title: 'Ramprasad | Security Researcher',
     description: 'Security researcher and smart contract auditor.',
     creator: '@0xramprasad',
   },
