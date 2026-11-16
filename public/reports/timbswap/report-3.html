@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>TimbSwap report 3</title>
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">TimbReleaseVault: the round oracle is immutable and
+points at a registry that has no cumulativeRounds and is replaced on
+every migration, so the 50M TIMBS it holds can never be released</h1>
+</header>
+<h1
+id="timbreleasevault-the-round-oracle-is-immutable-and-points-at-a-registry-that-has-no-cumulativerounds-and-is-replaced-on-every-migration-so-the-50m-timbs-it-holds-can-never-be-released">TimbReleaseVault:
+the round oracle is immutable and points at a registry that has no
+cumulativeRounds and is replaced on every migration, so the 50M TIMBS it
+holds can never be released</h1>
+<p><strong>Reporter:</strong> Ramprasad Edigi (Ram)
+<strong>Contract:</strong> <code>TimbReleaseVault</code> (mainnet
+source, <code>contracts/TimbReleaseVault.sol</code>,
+github.com/0xTimberZx/TimbSwap, main at commit <code>062634a</code>)
+<strong>Suggested tier:</strong> T2 (value stuck, not stolen). The
+maintainers may rate it higher, since nothing can ever recover it.
+<strong>Relation to known issues:</strong> new. No TS-001..TS-052 entry
+touches <code>TimbReleaseVault</code>. Like TS-047
+(<code>TimbAirdropDistributor</code>), this is a contract marked “design
+stub” in <code>contracts/</code>.</p>
+<h2 id="summary">Summary</h2>
+<p><code>TimbReleaseVault</code> is meant to hold the locked half of
+genesis supply (its header: “mint 50M to the treasury directly and 50M
+to this vault”) and release half of what is left at round 1,000, 2,000,
+4,000 and so on. It has no owner and no rescue function. The only way
+out is <code>release()</code>, which reads
+<code>rounds.cumulativeRounds()</code>.</p>
+<p><code>rounds</code> is set once in the constructor and is documented
+as “Provided by GameRegistry”. Two things break that:</p>
+<ol type="1">
+<li><strong>No GameRegistry has
+<code>cumulativeRounds()</code>.</strong> It does not exist anywhere in
+<code>contracts/</code>. Wired as documented, every
+<code>release()</code> call reverts on the missing selector,
+forever.</li>
+<li><strong>The oracle cannot follow a migration.</strong> The project’s
+own migration path deploys a fresh <code>GameRegistry</code> per
+generation (<code>scripts/DeployGen3Migration.s.sol</code>,
+<code>scripts/DeployBeta.s.sol</code>; see TS-043). The vault keeps
+reading the retired registry, whose count stops moving. Even after a
+counter is added and seeded across generations, the vault never sees
+rounds played on the new registry.</li>
+</ol>
+<p>The interface comment says the count “MUST never reset across
+game-generation redeploys”, but the contract binds it to a single
+registry address that the protocol replaces on each redeploy.</p>
+<h2 id="root-cause">Root cause</h2>
+<pre class="solidity"><code>IRoundOracle public immutable rounds;          // set once, no setter, no owner
+
+function release() external {
+    uint256 cum = rounds.cumulativeRounds();   // GameRegistry has no such function
+    ...
+    require(payout &gt; 0, &quot;nothing matured&quot;);
+    timbs.safeTransfer(treasury, payout);      // the only exit for the TIMBS
+}</code></pre>
+<p>The release schedule depends on one immutable external address. The
+protocol’s own migration process replaces that address, and the function
+the vault calls has not been written.</p>
+<h2 id="impact">Impact</h2>
+<ul>
+<li>If deployed per its genesis split, 50,000,000 TIMBS (half of
+<code>HARD_CAP</code>) is locked with no exit. The failure only shows up
+at the first milestone (round 1,000), long after funding, and by then
+nothing can fix it.</li>
+<li>If a <code>cumulativeRounds()</code> is later added to
+<code>GameRegistry</code>, the schedule still freezes at the first
+generation migration. That is the routine path the repo already uses,
+and the beta deploy itself deploys a new registry.</li>
+<li>No user funds are involved and nothing is stolen. This is protocol
+supply stuck for good, which is why it is filed at T2.</li>
+</ul>
+<h2 id="proof-of-concept">Proof of concept</h2>
+<p>Foundry tests against an unmodified copy of
+<code>contracts/TimbReleaseVault.sol</code> and
+<code>contracts/GameRegistry.sol</code> from main <code>062634a</code>.
+Local only, no network transactions.</p>
+<p><code>test/ReleaseVaultOracle.t.sol</code>:</p>
+<pre class="solidity"><code>function test_realRegistryAsOracle_releaseRevertsForever() public {
+    GameRegistry reg = new GameRegistry(address(timbs), address(0x51CC), address(0), 1e18, 1e17);
+    TimbReleaseVault v = new TimbReleaseVault(timbs, treasury, IRoundOracle(address(reg)), 50_000_000e18);
+    timbs.transfer(address(v), 50_000_000e18);
+
+    vm.warp(block.timestamp + 3650 days);
+    vm.expectRevert();               // missing cumulativeRounds() selector
+    v.release();
+    assertEq(timbs.balanceOf(address(v)), 50_000_000e18);
+}
+
+function test_registryMigration_freezesReleaseSchedule() public {
+    CountingRegistry oldReg = new CountingRegistry();       // a registry WITH a counter
+    TimbReleaseVault v = new TimbReleaseVault(timbs, treasury, oldReg, 50_000_000e18);
+    timbs.transfer(address(v), 50_000_000e18);
+    oldReg.bump(600);                                       // generation N, then migration
+    CountingRegistry newReg = new CountingRegistry();
+    newReg.bump(600); newReg.bump(10_000);                  // seeded, keeps counting
+    vm.expectRevert(bytes(&quot;nothing matured&quot;));
+    v.release();                                            // still reads the old 600
+}</code></pre>
+<p>The file also has
+<code>test_control_counterReachesMilestone_releasesHalf</code>: the same
+vault wired to a counter that reaches 1,000 releases 25M, so the tests
+isolate the oracle wiring.</p>
+<p>Result:</p>
+<pre><code>[PASS] test_control_counterReachesMilestone_releasesHalf()
+[PASS] test_realRegistryAsOracle_releaseRevertsForever()
+[PASS] test_registryMigration_freezesReleaseSchedule()
+Suite result: ok. 3 passed; 0 failed</code></pre>
+<p>Run:
+<code>FOUNDRY_SPARSE_MODE=true forge test --match-path test/ReleaseVaultOracle.t.sol -vv</code>
+(solc 0.8.24, via_ir, optimizer 200, cancun, as in the repo
+foundry.toml).</p>
+<h2 id="suggested-fix">Suggested fix</h2>
+<p>Keep the vault ownerless, but read rounds from a small, permanent
+ledger instead of from a registry that gets replaced:</p>
+<ol type="1">
+<li>Add an immutable <code>RoundLedger</code> contract that only ever
+counts up. The timelock owner can switch which registry is allowed to
+report, and the count carries across that switch.</li>
+<li>Each <code>GameRegistry</code> (or <code>TimbPrize</code>) calls
+<code>ledger.recordRound()</code> on every settled round.</li>
+<li>Deploy <code>TimbReleaseVault</code> with
+<code>rounds = RoundLedger</code>.</li>
+</ol>
+<pre class="solidity"><code>contract RoundLedger is Ownable2Step {        // owner = timelock
+    uint256 public cumulativeRounds;          // never decreases, never resets
+    address public reporter;                  // the live registry
+    function setReporter(address r) external onlyOwner { reporter = r; }
+    function recordRound() external {
+        require(msg.sender == reporter, &quot;not reporter&quot;);
+        cumulativeRounds += 1;
+    }
+}</code></pre>
+<p>A migration then only calls <code>setReporter(newRegistry)</code>.
+Also, until a real counter exists, do not fund the vault. A one-line
+pre-flight in the deploy script,
+<code>IRoundOracle(rounds).cumulativeRounds()</code> succeeding, would
+have caught the missing selector before any TIMBS was sent.</p>
+<h2 id="deployed-contract">Deployed contract</h2>
+<p>Source only. <code>TimbReleaseVault</code> is not in
+<code>MAINNET_ADDRESSES.md</code> or any deploy script, and the file is
+marked “DESIGN STUB, UNAUDITED”. It is reported against the mainnet
+source in <code>contracts/</code>, the same way TS-047 was filed against
+the airdrop distributor stub, so the wiring is fixed before any TIMBS is
+sent to it.</p>
+</body>
+</html>

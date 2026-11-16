@@ -16,7 +16,7 @@ const dmSerifDisplay = DM_Serif_Display({
 export const metadata: Metadata = {
   title: 'Ramprasad — Security Researcher & Smart Contract Auditor',
   description:
-    'Security researcher and smart contract auditor. Building ARGUS. Winner of $25K BNB Chain grant. 7 protocol audits completed.',
+    'Security researcher and smart contract auditor. Building ARGUS. Winner of $25K BNB Chain grant. 8 protocol audits completed.',
   openGraph: {
     title: 'Ramprasad — Security Researcher & Smart Contract Auditor',
     description:
