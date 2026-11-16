@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion'
 
 const audits = [
+  { name: 'TimbSwap', slug: 'timbswap', findings: { C: 0, H: 1, M: 2, L: 0 } },
   { name: 'MetaLend', slug: 'metalend', findings: { C: 2, H: 9, M: 2, L: 0 } },
   { name: 'Vault Guardians', slug: 'vault-guardians', findings: { C: 0, H: 3, M: 1, L: 2 } },
   { name: 'ThunderLoan', slug: 'thunderloan', findings: { C: 0, H: 2, M: 2, L: 2 } },

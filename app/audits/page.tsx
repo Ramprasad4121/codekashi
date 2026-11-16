@@ -8,6 +8,7 @@ export const metadata = {
 }
 
 const audits = [
+  { name: 'TimbSwap', slug: 'timbswap', description: 'DeFi exchange & governance — 50M TIMBS permanent lock & quorum bypass vulnerabilities discovered', findings: { C: 0, H: 1, M: 2, L: 0 } },
   { name: 'MetaLend', slug: 'metalend', description: 'Solana lending protocol — Critical fake-oracle vulnerability discovered', findings: { C: 2, H: 9, M: 2, L: 0 } },
   { name: 'Vault Guardians', slug: 'vault-guardians', description: 'DeFi vault management protocol', findings: { C: 0, H: 3, M: 1, L: 2 } },
   { name: 'ThunderLoan', slug: 'thunderloan', description: 'Flash loan protocol', findings: { C: 0, H: 2, M: 2, L: 2 } },

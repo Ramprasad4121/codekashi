@@ -7,7 +7,7 @@ export default function About() {
   const experience = [
     {
       company: 'Protocol Audits',
-      role: '7+ Smart Contracts Audited'
+      role: '8+ Smart Contracts Audited'
     },
     {
       company: 'Chainlink',
